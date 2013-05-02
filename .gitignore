@@ -1,4 +1,10 @@
+logs
+.makepid
+
 *.py[cod]
+TAGS
+.sass-cache
+assets/css/main.css
 
 # C extensions
 *.so

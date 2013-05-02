@@ -1,0 +1,7 @@
+bind: 0.0.0.0:8080
+allow-transfers: true
+files:
+  - '/var/log/Xorg*.log'
+
+  - 'Cron':
+      - '/var/log/cron*'

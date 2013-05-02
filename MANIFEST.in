@@ -1,0 +1,2 @@
+# make github and sdist happy
+include README.rst

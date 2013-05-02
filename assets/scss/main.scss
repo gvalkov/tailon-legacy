@@ -1,0 +1,250 @@
+@import 'vars.scss';
+@import 'base.scss';
+
+body {
+  background-color: #1d1f21;
+}
+
+/* toolbar styles */
+.toolbar {
+  width: 100%;
+  background: #282a2e;
+  padding: 5px;
+
+  -webkit-box-direction: normal;
+  -moz-box-direction: normal;
+  -webkit-box-orient: horizontal;
+  -moz-box-orient: horizontal;
+
+  @include display-flex();
+  @include flex-direction(row);
+  @include flex-wrap(nowrap);
+
+  -webkit-box-pack: start;
+  -moz-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+
+  @include align-content(stretch);
+  @include align-items(center);
+}
+
+.toolbar-item {
+  height: 100%;
+  padding-right: 5px;
+  @include order(0);
+  @include flex(0, 0, auto);
+  @include align-self(flex-start);
+}
+
+.toolbar-item-fill {
+  @include flex(1, 0, auto);
+}
+
+#logselect {
+  min-width: 300px;
+}
+
+#modeselect {
+  min-width: 80px;
+}
+
+#scriptinput {
+  @include box-sizing(border-box);
+  @include box-shadow(2px, 2px, 2px, 0px, darken(#373b41, 10%));
+
+  height: 26px;
+
+  background: #373b41;
+  padding-right: 30px;
+  position: relative;
+
+  input {
+    @extend .toolbar-widget;
+    @extend .toolbar-text;
+    padding-left: 0.5em;
+    height: 100%;
+    width: 100%;
+    text-align: center;
+  }
+
+  div {
+    line-height: 26px;
+    color: #888;
+    text-align: center;
+    vertical-align: middle;
+    cursor: pointer;
+    cursor: hand;
+    display: block;
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 22px;
+
+    &:hover {@extend .toolbar-hover;}
+  }
+}
+
+.toolbar-widget {
+  color: #c5c8c6;
+  background: #373b41;
+  border: 0;
+  border-radius: 0;
+  @include box-sizing(border-box);
+}
+
+.toolbar-hover {
+  background-color: lighten(#373b41, 5%);
+}
+
+.toolbar-text {
+  font-family: $ttfonts;
+  font-size: 11px;
+}
+
+.button-group {
+  height: 26px;
+
+  a {
+    @include box-shadow(2px, 2px, 2px, 0px, darken(#373b41, 10%));
+    @extend .toolbar-widget;
+
+    float: left;
+    margin-right: 0;
+    height: 26px;
+    width: 26px;
+    text-align: center;
+    line-height: 26px;
+    font-size: 1.5em;
+
+    &:hover {
+      @extend .toolbar-hover;
+    }
+
+    &:link,
+    &:visited,
+    &:active {
+      text-decoration: none;
+      outline: none;
+    }
+  }
+}
+
+.quickbar {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+}
+
+@mixin input-placeholder() {
+  color: #c5c8c6;
+  font-style: italic;
+  text-align: center;
+}
+
+@mixin selected-placeholder($color: #373b41) {
+  background: $color;
+  text-shadow: none;
+}
+
+.select-dropdown-container {
+  border: 0;
+  border-radius: 0;
+  font-family: $ttfonts;
+  font-size: smaller;
+  color: #c5c8c6;
+  background: #373b41;
+
+}
+
+.select-container {
+  @extend .toolbar-text;
+  @include box-shadow(2px, 2px, 2px, 0px, darken(#373b41, 10%));
+
+  border: 0;
+  vertical-align: middle;
+  width: 20%;
+
+  .select2-default {
+    @include input-placeholder();
+  }
+
+  .select2-choice {
+    @extend .toolbar-widget;
+    height: 100%;
+    padding-left: 0;
+
+    span {
+      width: 100%;
+      padding-left: 8px;
+      background: #373b41;
+    }
+  }
+
+  .select2-choice div {
+    border: 0;
+  }
+
+  .select2-choice div b {
+    background: url("../js/vendor/select2.png") no-repeat scroll 0 1px #373b41;
+    border: 0;
+    display: block;
+    height: 100%;
+    width: 100%;
+
+    &:hover,
+    &.hovered {
+      @extend .toolbar-hover;
+    }
+  }
+}
+
+
+/* log view style */
+
+.scrollable {
+  overflow-y: auto;
+}
+
+.log-view {
+  white-space: nowrap;
+  font-family: $ttfonts;
+  font-size: 10px;
+  overflow-y: auto;
+  line-height: 1.3;
+  color: #c5c8c6;
+  background-color: #1d1f21;
+
+  .log-entry {
+    display: block;
+  }
+
+  .log-entry-current {
+    background: #282a2e;
+  }
+
+  .log-notice {
+    background: #c66;
+    color: #1d1f21;
+    text-align: center;
+    font-weight: bold;
+  }
+}
+
+.log-view ::-moz-selection {@include selected-placeholder();}
+.log-view ::selection {@include selected-placeholder();}
+
+input::-moz-selection {
+  @include selected-placeholder(darken(#373b41, 40%));
+  color: white;
+}
+input::selection {
+  @include selected-placeholder(darken(#373b41, 40%));
+  color: white;
+}
+
+input::-webkit-input-placeholder {@include input-placeholder();}
+input:-moz-placeholder {@include input-placeholder();} 
+input::-moz-placeholder {@include input-placeholder();}
+input:-ms-input-placeholder {@include input-placeholder();}
