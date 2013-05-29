@@ -25,12 +25,21 @@ kw = {
     'author_email'     : 'georgi.t.valkov@gmail.com',
     'license'          : 'New BSD License',
     'url'              : 'https://github.com/gvalkov/tailon',
-    'keywords'         : 'log',
+    'keywords'         : 'log monitoring tail',
     'classifiers'      : classifiers,
     'packages'         : ['tailon'],
     'install_requires' : ['tornado>=3.0.1', 'PyYAML>=3.10'],
     'entry_points'     : {'console_scripts':['tailon = tailon.main:main']},
     'zip_safe'         : True,
+    'package_data'     : {
+        'tailon' : ['../assets/js/**/*',
+                    '../assets/js/main.js',
+                    '../assets/css/*',
+                    '../assets/favicon.ico',
+                    '../assets/fonts/*',
+                    '../templates/*',
+                    ]
+        },
 }
 
 setup(**kw)

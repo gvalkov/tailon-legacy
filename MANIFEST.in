@@ -1,2 +1,6 @@
 # make github and sdist happy
 include README.rst
+include LICENSE
+include assets/**/*
+include templates/*
+prune assets/scss

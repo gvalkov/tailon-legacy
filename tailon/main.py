@@ -7,6 +7,7 @@ import logging
 import argparse
 import textwrap
 import collections
+import pkg_resources
 
 from tornado import ioloop, httpserver
 from tailon.server import Application
@@ -161,9 +162,15 @@ def main(argv=sys.argv):
         applog.setLevel(logging.DEBUG)
         weblog.setLevel(logging.DEBUG)
 
+    try:
+        template_dir = pkg_resources.resource_filename('tailon', '../templates')
+        assets_dir = pkg_resources.resource_filename('tailon', '../assets')
+    except ImportError:
+        template_dir, assets_dir = None, None
+
     config = main_config(opts)
 
-    application = Application(config)
+    application = Application(config, {}, template_dir, assets_dir)
     server = httpserver.HTTPServer(application)
     server.listen(config['port'], config['addr'])
 

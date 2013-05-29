@@ -216,7 +216,7 @@ class WebsocketCommands(websocket.WebSocketHandler):
 class Application(web.Application):
     here = dirname(__file__)
 
-    def __init__(self, config, cconfig={}):
+    def __init__(self, config, cconfig={}, template_dir=None, assets_dir=None):
         routes = [
           (r'/assets/(.*)', web.StaticFileHandler, {'path': pjoin(self.here, '../assets/')}),
           (r'/files', Files),
@@ -225,9 +225,15 @@ class Application(web.Application):
           (r'/ws', WebsocketCommands),
         ]
 
+        if not template_dir: pjoin(self.here, '../templates')
+        if not assets_dir:   pjoin(self.here, '../assets')
+
+        log.debug('template dir: %s', template_dir)
+        log.debug('static dir: %s', assets_dir)
+
         settings = { 
-          'static_path':   pjoin(self.here, '../assets'),
-          'template_path': pjoin(self.here, '../templates'),
+          'static_path':   assets_dir,
+          'template_path': template_dir,
           'debug': config['debug'],
         }
 
