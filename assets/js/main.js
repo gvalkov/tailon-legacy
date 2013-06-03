@@ -388,6 +388,6 @@ jwerty.key('w', function () {
 });
 jwerty.key('e', function () {
   if (isInputFocused()) { return true; };
-  scriptview.focus();
+  scriptview.$el.focus();
   return false;
 });
