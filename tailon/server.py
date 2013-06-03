@@ -115,7 +115,7 @@ class WebsocketCommands(websocket.WebSocketHandler):
         self.awk = None
 
     def stdout_callback(self, fn, stream, data):
-        log.debug('stdout: %s\n', data.decode('utf8'))
+        # log.debug('stdout: %s\n', data.decode('utf8'))
         if not self.connected:
             return
 
@@ -123,7 +123,7 @@ class WebsocketCommands(websocket.WebSocketHandler):
         self.wjson(msg)
 
     def stderr_callback(self, fn, stream, data):
-        log.debug('stderr: %s', data)
+        # log.debug('stderr: %s', data)
         if not self.connected:
             return
 
