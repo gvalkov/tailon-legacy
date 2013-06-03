@@ -3,9 +3,6 @@
 
 // cached jquery selectors
 var $toolbar = $('.toolbar');
-var $logselect = $('#logselect');
-var $modeselect = $('#modeselect');
-var $scriptinput = $('#scriptinput input');
 var $actionHide = $('.button-group .action-hide-toolbar');
 var $actionShow = $('.button-group .action-show-toolbar');
 var $actionClear = $('.button-group .action-clear-logview');
@@ -14,12 +11,130 @@ var $actionDownload = $('.button-group .action-download');
 // globals
 var toolbarHidden = false;
 var logviewer = null;
-var currentFile = '';
-var currentMode = '';
-var currentScript = '';
-var nlastLines = 60;
 var connected = false;
 var socketRetries = 10;
+
+// utils
+function formatBytes(size) {
+  var units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+  var i = 0;
+  while(size >= 1024) {
+    size /= 1024;
+    ++i;
+  }
+  return size.toFixed(1) + ' ' + units[i];
+}
+
+function formatFilename(state) {
+  if (!state.id) return state.text;
+  var size = formatBytes($(state.element).data('size'));
+  return '<span>'+state.text+'</span>' + '<span style="float:right;">'+size+'</span>';
+}
+
+function endsWith(str, suffix) {
+  return str.indexOf(suffix, str.length - suffix.length) !== -1;
+}
+
+// models
+var PanelModel = Backbone.Model.extend({
+  defaults: {
+    'mode': 'tail',
+    'file':  null,
+    'script': null,
+    'tail-lines': 60
+  }
+});
+
+// views
+var ModeSelectView = Backbone.View.extend({
+  initialize: function() {
+    this.render();
+  },
+
+  events: {
+    'change': 'modechange'
+  },
+
+  modechange: function (change) {
+    this.model.set({'mode':change.val})
+  },
+
+  render: function() {
+    this.$el.select2({
+      width: 'element',
+      allowClear: true,
+      containerCssClass: 'select-container',
+      dropdownCssClass: 'select-dropdown-container'
+    });
+  }
+});
+
+var FileSelectView = Backbone.View.extend({
+  initialize: function() {
+    this.render();
+  },
+
+  events: {
+    'change': 'filechange'
+  },
+
+  filechange: function(change) {
+    this.model.set({'file':change.val})
+  },
+
+  render: function() {
+    this.$el.select2({
+      width: 'element',
+      placeholder: 'select file',
+      allowClear: true,
+      formatResult: formatFilename,
+      containerCssClass: 'select-container',
+      dropdownCssClass: 'select-dropdown-container',
+      dropdownAutoWidth: true
+    });
+  }
+});
+
+var ScriptView = Backbone.View.extend({
+  initialize: function() {
+    this.listenTo(this.model, 'change:mode', this.rendermode);
+    this.render();
+  },
+
+  events: {
+    'change': '_changeScript'
+  },
+
+  _changeScript: function() {
+    this.model.set({'script': this.$el.val()});
+  },
+
+  _placeholders: {
+    'awk': '{print $0; fflush()}',
+    'grep': '.*'
+  },
+
+  rendermode: function() {
+    var mode = this.model.get('mode')
+      , el = this.$el;
+
+    if (mode in this._placeholders) {
+      el.removeAttr('disabled');
+      el.val('');
+      el.attr('placeholder', this._placeholders[mode]);
+    } else {
+      el.attr('disabled', 'disabled');
+      el.val('');
+      el.attr('placeholder', 'mode "'+mode+'" does not accept input');
+    }
+
+    return this;
+  },
+
+  render: function() {
+    return this;
+  }
+});
 
 
 // logview
@@ -163,17 +278,22 @@ function onMessage(e) {
   logviewer.write(spans);
 }
 
-function sendCommand(fn, mode, script, last) {
+function wscommand(m) {
+  var fn = m.get('file')
+    , mode = m.get('mode')
+    , script = m.get('script')
+    , lines = m.get('tail-lines');
+
   (function() {
     if (connected) {
-      if (fn === '') {
+      if (fn === null) {
         logviewer.clear();
         return;
       }
 
       var msg = {};
       msg[mode] = fn;
-      msg['last'] = last;
+      msg['last'] = lines;
 
       if (mode != 'tail') {
         if (!script) {
@@ -195,62 +315,8 @@ socket.onopen = onOpen;
 socket.onclose = onClose;
 socket.onmessage = onMessage;
 
-// Utils
-function formatBytes(size) {
-  var units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-  var i = 0;
-  while(size >= 1024) {
-    size /= 1024;
-    ++i;
-  }
-  return size.toFixed(1) + ' ' + units[i];
-}
-
-function formatFilename(state) {
-  if (!state.id) return state.text;
-  var size = formatBytes($(state.element).data('size'));
-  return '<span>'+state.text+'</span>' + '<span style="float:right;">'+size+'</span>';
-}
-
-function endsWith(str, suffix) {
-  return str.indexOf(suffix, str.length - suffix.length) !== -1;
-}
-
 
 // UI
-$modeselect.select2({
-  width: 'element',
-  allowClear: true,
-  containerCssClass: 'select-container',
-  dropdownCssClass: 'select-dropdown-container'
-});
-
-$logselect.select2({
-  width: 'element',
-  placeholder: 'select file',
-  allowClear: true,
-  formatResult: formatFilename,
-  containerCssClass: 'select-container',
-  dropdownCssClass: 'select-dropdown-container',
-  dropdownAutoWidth: true
-});
-
-
-$modeselect.on('change', function (e) {
-  $(document).trigger('changeMode', e.val);
-});
-
-
-$logselect.on('change', function (e) {
-  if (e.val === window.currentFile) {
-    return;
-  } else {
-    window.currentFile = e.val;
-  }
-
-  $(document).trigger('changeFile', e.val);
-});
-
 $actionHide.click(function () {
   $toolbar.slideUp('fast');
   toolbarHidden = true;
@@ -281,50 +347,27 @@ logviewer = logview('#logviewer');
 resizeLogview();
 $(window).resize(resizeLogview);
 
+window.panmod = new PanelModel();
 
-// Visual effects
+window.fileselectview = new FileSelectView({model: panmod, el: '#logselect'});
+window.modeselectview = new ModeSelectView({model: panmod, el: '#modeselect'});
+window.scriptview = new ScriptView({model: panmod, el: '#scriptinput input'});
+
+// update the download link whenever the selected file changes
+panmod.on('change:file', function(model, fn) {
+  $actionDownload.attr('href', 'fetch/' + fn);
+});
+
+panmod.on('change', function(model) {
+  wscommand(model);
+});
+
+
+// visual effects
 $('.select2-choice').hover(
   function () {$(this).find('div b').addClass('hovered');},
   function () {$(this).find('div b').removeClass('hovered');}
 );
-
-
-// Signals and slots
-$(document).on('changeMode', function (e, mode) {
-  window.currentMode = mode;
-  $(document).trigger('modeChanged', mode);
-});
-
-$(document).on('modeChanged', function (e, mode) {
-  if (mode === 'awk') {
-    $scriptinput.removeAttr('disabled');
-    $scriptinput.attr('placeholder', '{print $0; fflush()}');
-  } else if (mode === 'grep') {
-    $scriptinput.removeAttr('disabled');
-    $scriptinput.val('');
-    $scriptinput.attr('placeholder', '.*');
-  } else {
-    $scriptinput.attr('disabled', 'disabled');
-    $scriptinput.val('');
-    $scriptinput.attr('placeholder', 'mode "'+mode+'" does not accept input');
-    sendCommand(currentFile, currentMode, '', nlastLines);
-  }
-});
-
-$(document).on('scriptChanged', function(e, script) {
-  window.currentScript = script;
-  sendCommand(currentFile, currentMode, script, nlastLines);
-});
-
-$(document).on('changeFile', function (e, fn) {
-  currentFile = fn;
-  $(document).trigger('fileChanged', fn);
-});
-
-$(document).on('fileChanged', function (e, fn) {
-  $actionDownload.attr('href', 'fetch/' + fn);
-  sendCommand(fn, currentMode, currentScript, nlastLines);
-});
 
 
 // shortcuts:
@@ -335,27 +378,16 @@ $(document).on('fileChanged', function (e, fn) {
 jwerty.key('ctrl+l', logviewer.clear);
 jwerty.key('q', function () {
   if (isInputFocused()) { return true; };
-  $logselect.select2('open');
+  fileselectview.$el.select2('open');
   return false
 });
 jwerty.key('w', function () {
   if (isInputFocused()) { return true; };
-  $modeselect.select2('open');
+  modeselectview.$el.select2('open');
   return false;
 });
 jwerty.key('e', function () {
   if (isInputFocused()) { return true; };
-  $scriptinput.focus();
+  scriptview.focus();
   return false;
 });
-
-
-$scriptinput.keypress(function (e) {
-  if (e.which === 13) {
-    $(document).trigger('scriptChanged', $scriptinput.val());
-    return false;
-  }
-  return true;
-});
-
-$(document).trigger('changeMode', 'tail');
