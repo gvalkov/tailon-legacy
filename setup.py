@@ -30,9 +30,9 @@ kw = {
     'packages'         : ['tailon'],
     'install_requires' : ['tornado>=3.0.1', 'PyYAML>=3.10'],
     'entry_points'     : {'console_scripts':['tailon = tailon.main:main']},
-    'zip_safe'         : True,
+    'zip_safe'         : False,
     'package_data'     : {
-        'tailon' : ['../assets/js/**/*',
+        'tailon' : ['../assets/js/vendor/*',
                     '../assets/js/main.js',
                     '../assets/css/*',
                     '../assets/favicon.ico',
