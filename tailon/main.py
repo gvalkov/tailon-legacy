@@ -115,7 +115,7 @@ def parseopts(args=None):
 
     group = p.add_argument_group('Optional arguments')
     arg = group.add_argument
-    arg('-h', '--help', action='help', help='show this helm message and exit')
+    arg('-h', '--help', action='help', help='show this help message and exit')
     arg('-d', '--debug', action='store_true', help='show debug messages')
     arg('-v', '--version', action='version', version=version_verbose())
     arg('-b', '--bind', metavar='addr:port', help='listen on the specified address and port')
