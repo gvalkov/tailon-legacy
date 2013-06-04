@@ -1,15 +1,7 @@
 // global $:false, jQuery:false
 // jshint laxcomma: true, sub: true
 
-// cached jquery selectors
-var $toolbar = $('.toolbar');
-var $actionHide = $('.button-group .action-hide-toolbar');
-var $actionShow = $('.button-group .action-show-toolbar');
-var $actionClear = $('.button-group .action-clear-logview');
-var $actionDownload = $('.button-group .action-download');
-
 // globals
-var toolbarHidden = false;
 var logviewer = null;
 var connected = false;
 var socketRetries = 10;
@@ -35,13 +27,28 @@ function endsWith(str, suffix) {
   return str.indexOf(suffix, str.length - suffix.length) !== -1;
 }
 
+function isInputFocused() {
+  return document.activeElement.nodeName === 'INPUT';
+}
+
+function resizeLogview() {
+  var toolbarHeight = (uimodel.get('pannel-hidden') ? 0 : $('.toolbar').height()); // todo
+  logviewer.container.height(window.innerHeight - toolbarHeight);
+}
+
 // models
-var PanelModel = Backbone.Model.extend({
+var CommandModel = Backbone.Model.extend({
   defaults: {
     'mode': 'tail',
     'file':  null,
     'script': null,
     'tail-lines': 60
+  }
+});
+
+var UiModel = Backbone.Model.extend({
+  defaults: {
+    'panel-hidden': false
   }
 });
 
@@ -56,7 +63,7 @@ var ModeSelectView = Backbone.View.extend({
   },
 
   modechange: function (change) {
-    this.model.set({'mode':change.val})
+    this.model.set({'mode':change.val});
   },
 
   render: function() {
@@ -66,6 +73,7 @@ var ModeSelectView = Backbone.View.extend({
       containerCssClass: 'select-container',
       dropdownCssClass: 'select-dropdown-container'
     });
+    return this;
   }
 });
 
@@ -79,7 +87,7 @@ var FileSelectView = Backbone.View.extend({
   },
 
   filechange: function(change) {
-    this.model.set({'file':change.val})
+    this.model.set({'file':change.val});
   },
 
   render: function() {
@@ -92,6 +100,7 @@ var FileSelectView = Backbone.View.extend({
       dropdownCssClass: 'select-dropdown-container',
       dropdownAutoWidth: true
     });
+    return this;
   }
 });
 
@@ -136,6 +145,64 @@ var ScriptView = Backbone.View.extend({
   }
 });
 
+var PanelView = Backbone.View.extend({
+  initialize: function() {
+    this.listenTo(this.model, 'change:panel-hidden', this.hideshowpanel);
+    this.listenTo(this.options.cmdmodel, 'change:file', this.updatehrefs); // don't know
+
+    this.$downloadA = this.$el.find('.toolbar-item .button-group .action-download');
+  },
+
+  events: {
+    'click .toolbar-item .button-group .action-hide-toolbar':  'sethidden',
+    'click .toolbar-item .button-group .action-clear-logview': 'clearlogview'
+  },
+
+  // update the download link whenever the selected file changes
+  updatehrefs: function() {
+    this.$downloadA.attr('href', 'fetch/' + this.options.cmdmodel.get('file'));
+  },
+
+  hideshowpanel: function() {
+    if (this.model.get('panel-hidden')) {
+      this.$el.slideUp('fast');
+    } else {
+      this.$el.slideDown('fast');
+    }
+  },
+
+  sethidden: function() {
+    this.model.set({'panel-hidden': true});
+  },
+
+  clearlogview: function() {
+    logviewer.clear();
+  }
+});
+
+
+var ActionsView = Backbone.View.extend({
+  initialize: function() {
+    this.listenTo(this.model, 'change:panel-hidden', this.hideshowactions);
+  },
+
+  events: {
+    'click .action-show-toolbar': 'sethidden'
+  },
+
+  hideshowactions: function() {
+    console.log('asdfasdf');
+    if (this.model.get('panel-hidden')) {
+      this.$el.removeClass('hidden');
+    } else {
+      this.$el.addClass('hidden');
+    }
+  },
+
+  sethidden: function() {
+    this.model.set({'panel-hidden': false});
+  }
+});
 
 // logview
 function logview(selector) {
@@ -246,12 +313,10 @@ function onClose() {
 }
 
 function onMessage(e) {
-  var data = JSON.parse(e.data);
-  var spans = [];
-  var i, line;
-  var logEntry = logviewer.logEntry;
-  var logNotice = logviewer.logNotice;
-
+  var data = JSON.parse(e.data)
+    , spans = [], i, line
+    , logEntry = logviewer.logEntry
+    , logNotice = logviewer.logNotice;
 
   if ('err' in data) {
     if (data['err'] === 'truncated') {
@@ -315,50 +380,21 @@ socket.onopen = onOpen;
 socket.onclose = onClose;
 socket.onmessage = onMessage;
 
-
-// UI
-$actionHide.click(function () {
-  $toolbar.slideUp('fast');
-  toolbarHidden = true;
-  $actionShow.parent().removeClass('hidden');
-  $actionShow.parent().slideDown('fast');
-});
-
-$actionShow.click(function () {
-  $actionShow.parent().slideUp('fast');
-  $toolbar.slideDown('fast');
-  toolbarHidden = false;
-});
-
-$actionClear.click(function () {
-    logviewer.clear();
-});
-
-function isInputFocused() {
-  return document.activeElement.nodeName === 'INPUT';
-}
-
-function resizeLogview() {
-  var toolbarHeight = (toolbarHidden ? 0 : $toolbar.height());
-  logviewer.container.height(window.innerHeight - toolbarHeight);
-}
-
 logviewer = logview('#logviewer');
+
+window.cmdmodel = new CommandModel();
+window.uimodel = new UiModel();
+
+window.fileselectview = new FileSelectView({model: cmdmodel, el: '#logselect'});
+window.modeselectview = new ModeSelectView({model: cmdmodel, el: '#modeselect'});
+window.scriptview = new ScriptView({model: cmdmodel, el: '#scriptinput input'});
+window.actionsview = new ActionsView({model: uimodel, el: '.quickbar .button-group'});
+window.buttonsview = new PanelView({model: uimodel, cmdmodel: cmdmodel, el: '.toolbar'});
+
 resizeLogview();
 $(window).resize(resizeLogview);
 
-window.panmod = new PanelModel();
-
-window.fileselectview = new FileSelectView({model: panmod, el: '#logselect'});
-window.modeselectview = new ModeSelectView({model: panmod, el: '#modeselect'});
-window.scriptview = new ScriptView({model: panmod, el: '#scriptinput input'});
-
-// update the download link whenever the selected file changes
-panmod.on('change:file', function(model, fn) {
-  $actionDownload.attr('href', 'fetch/' + fn);
-});
-
-panmod.on('change', function(model) {
+cmdmodel.on('change', function(model) {
   wscommand(model);
 });
 
@@ -377,17 +413,19 @@ $('.select2-choice').hover(
 //   ret    - mark current time
 jwerty.key('ctrl+l', logviewer.clear);
 jwerty.key('q', function () {
-  if (isInputFocused()) { return true; };
+  if (isInputFocused()) { return true; }
   fileselectview.$el.select2('open');
-  return false
+  return false;
 });
+
 jwerty.key('w', function () {
-  if (isInputFocused()) { return true; };
+  if (isInputFocused()) { return true; }
   modeselectview.$el.select2('open');
   return false;
 });
+
 jwerty.key('e', function () {
-  if (isInputFocused()) { return true; };
+  if (isInputFocused()) { return true; }
   scriptview.$el.focus();
   return false;
 });
