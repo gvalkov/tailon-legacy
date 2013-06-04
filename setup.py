@@ -41,6 +41,7 @@ kw = {
                     '../templates/*',
                     ]
         },
+    'include_package_data': False,
 }
 
 setup(**kw)

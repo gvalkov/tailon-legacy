@@ -1,6 +1,8 @@
 # make github and sdist happy
 include README.rst
 include LICENSE
-include assets/**/*
+include assets/js/*
+include assets/js/vendor/*
+include assets/css/*
 include templates/*
 prune assets/scss
