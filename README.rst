@@ -12,6 +12,22 @@ the following unix commands::
 
 Tailon is under development.
 
+Screenshots
+-----------
+
+.. image::  https://github.com/gvalkov/screenshots/raw/master/thumb/tailon-tail.png
+   :target: https://github.com/gvalkov/screenshots/raw/master/full/tailon-tail.png
+   :alt:    Tail
+
+.. image::  https://github.com/gvalkov/screenshots/raw/master/thumb/tailon-grep.png
+   :target: https://github.com/gvalkov/screenshots/raw/master/full/tailon-grep.png
+   :alt:    Tail | Grep
+
+.. image::  https://github.com/gvalkov/screenshots/raw/master/thumb/tailon-awk.png
+   :target: https://github.com/gvalkov/screenshots/raw/master/full/tailon-awk.png
+   :alt:    Tail | Awk
+
+
 Installation
 ------------
 
@@ -93,7 +109,6 @@ The default set of enabled commands - tail, grep and awk - should be
 safe to use. Awk is ran in sandbox_ mode, which prevents scripts from
 accessing your system (either through the ``system()`` builtin or
 through input redirection).
-
 
 Similar Projects
 ----------------
