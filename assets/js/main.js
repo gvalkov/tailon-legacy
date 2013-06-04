@@ -191,7 +191,6 @@ var ActionsView = Backbone.View.extend({
   },
 
   hideshowactions: function() {
-    console.log('asdfasdf');
     if (this.model.get('panel-hidden')) {
       this.$el.removeClass('hidden');
     } else {
