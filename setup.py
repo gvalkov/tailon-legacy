@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+from tailon.version import version
 from os.path import abspath, dirname, join
 from setuptools import setup
 
@@ -18,7 +19,7 @@ classifiers = (
 
 kw = {
     'name'             : 'tailon',
-    'version'          : '0.1.0',
+    'version'          : version(),
     'description'      : 'webapp for looking at and searching through log files',
     'long_description' : open(join(abspath(dirname(__file__)), 'README.rst')).read(),
     'author'           : 'Georgi Valkov',
