@@ -4,12 +4,12 @@ import os, sys
 import glob
 import pprint
 import logging
-import argparse
 import textwrap
 import collections
 import pkg_resources
 
 from tornado import ioloop, httpserver
+from tailon import argparse
 from tailon.server import Application
 from tailon.version import version_verbose
 
