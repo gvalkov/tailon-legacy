@@ -91,10 +91,10 @@ def parseopts(args=None):
 
     epilog = '''
     Example config file:
-      bind: 0.0.0.0:8080      # address and port to bind on 
+      bind: 0.0.0.0:8080      # address and port to bind on
       allow-transfers: true   # allow file downloads
       relative-root: /tailon  # web app root path (default: '')
-    
+
       files:
         - '/var/log/messages'
         - '/var/log/nginx/*.log'
@@ -123,7 +123,7 @@ def parseopts(args=None):
     arg('-a', '--allow-transfers', action='store_true', help='allow file downloads')
 
     return p, p.parse_args(args)
-    
+
 def main_config(opts):
     if opts.config:
         config = parseconfig(opts.config)
@@ -181,12 +181,12 @@ def main(argv=sys.argv):
         for fn in files: lines.append(fn)
     log.debug('Config:\n%s', pprint.pformat(config))
     log.debug('Files:\n%s', '\n - '.join(lines))
-    
+
     loop = ioloop.IOLoop.instance()
     msg = 'Listening on %s:%s' % (config['addr'], config['port'])
     loop.add_callback(log.info, msg)
     loop.start()
-    
+
 class CompactHelpFormatter(argparse.RawTextHelpFormatter):
     def __init__(self, *args, **kw):
         super(CompactHelpFormatter, self).__init__(*args, max_help_position=35, **kw)
