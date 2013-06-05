@@ -57,7 +57,7 @@ to monitor:
 
     $ tailon -f /var/log/nginx/* /var/log/apache/{access,error}.log
 
-If atleast one of the specified files is readable by the current user,
+If at least one of the specified files is readable by the current user,
 tailon will start listening on http://localhost:8080 .
 
 Tailon's server-side functionality is documented in its help message::
