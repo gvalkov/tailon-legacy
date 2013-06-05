@@ -8,7 +8,6 @@ the following unix commands::
     tail -f
     tail -f | grep
     tail -f | awk
-    tail -f | sed
 
 Tailon is under development.
 
@@ -51,17 +50,17 @@ Alternatively, it can be installed manually:
 Usage
 -----
 
-To get started with *tailon* you only need to point it to the files
-that you wish to see in the web interface:
+To get started with *tailon* you give it a list of files that you wish
+to monitor:
 
 .. code-block:: bash
 
-    $ tailon -f /var/log/nginx/* /var/log/apache/{access,error}.log 
+    $ tailon -f /var/log/nginx/* /var/log/apache/{access,error}.log
 
-Once this is done, visit http://localhost:8080 with your browser.
+If atleast one of the specified files is readable by the current user,
+tailon will start listening on http://localhost:8080 .
 
-Tailon's server-side functionality is succinctly documented in its
-help message::
+Tailon's server-side functionality is documented in its help message::
 
     $ tailon --help
     Usage: tailon [-c path] [-f path [path ...]] [-h] [-d] [-v] [-b addr:port]
@@ -90,7 +89,7 @@ help message::
         - '/var/log/messages'
         - '/var/log/nginx/*.log'
         - '/var/log/xorg.[0-10].log'
-        - 'cron':             # sub-section
+        - 'cron':             # sub-section (not implemented yet)
             - '/var/log/cron*'
 
 Security
@@ -110,23 +109,45 @@ safe to use. Awk is ran in sandbox_ mode, which prevents scripts from
 accessing your system (either through the ``system()`` builtin or
 through input redirection).
 
+Todo
+----
+
+  - My longterm goal is to bring as many ideas from multitail_ into
+    tailon as possible.
+
+  - Windows/FreeBSD support. While tailon runs on these platforms, the
+    availability and functionality of Coreutils may prevent tailon
+    from working as expected. Including a cross-platform Python
+    version of tail and grep will guarantee a set of functionality
+    available to all platforms.
+
+  - Tabbed interface.
+
+  - Visual/Audible alarms on log activity.
+
+  - Interface themes.
+
 Similar Projects
 ----------------
 
   - clarity_
+  - errorlog_
+  - `log.io`_
 
 Attributions
 ------------
 
-  - tailon's favicon was created from this_ icon.
+  - Tailon's favicon was created from this_ icon.
 
 License
 -------
 
 Tailon is released under the terms of the `New BSD License`_.
 
-
+.. _multitail: http://www.vanheusden.com/multitail/
 .. _clarity:   https://github.com/tobi/clarity
+.. _errorlog:  http://www.psychogenic.com/en/products/Errorlog.php
+.. _`log.io`:  http://logio.org/
 .. _this:      http://www.iconfinder.com/icondetails/15150/48/terminal_icon
 .. _sandbox:   http://www.gnu.org/software/gawk/manual/html_node/Options.html#index-g_t_0040code_007b_002dS_007d-option-277
 .. _`New BSD License`: https://raw.github.com/gvalkov/tailon/master/LICENSE
