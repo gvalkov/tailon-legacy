@@ -218,18 +218,24 @@ class Application(web.Application):
     here = dirname(__file__)
 
     def __init__(self, config, cconfig={}, template_dir=None, assets_dir=None):
-        wsroutes = SockJSRouter(WebsocketCommands, '/ws')
+        prefix = config['relative-root']
+        wsroutes = SockJSRouter(WebsocketCommands, os.path.join('/', prefix, 'ws'))
         WebsocketCommands.application = self
 
         routes = [
-          (r'/assets/(.*)', web.StaticFileHandler, {'path': pjoin(self.here, '../assets/')}),
-          (r'/files', Files),
-          (r'/fetch/(.*)', Fetch),
-          (r'/', Index),
-          (r'/ws', WebsocketCommands),
+          [r'/assets/(.*)', web.StaticFileHandler, {'path': pjoin(self.here, '../assets/')}],
+          [r'/files', Files],
+          [r'/fetch/(.*)', Fetch],
+          [r'/', Index],
         ]
+
+        for route in routes:
+            route[0] = os.path.join('/', prefix, route[0].lstrip('/'))
+        
         routes += wsroutes.urls
 
+        # import pprint
+        # log.debug('routes:\n%s', pprint.pformat(routes))
 
         if not template_dir: pjoin(self.here, '../templates')
         if not assets_dir:   pjoin(self.here, '../assets')

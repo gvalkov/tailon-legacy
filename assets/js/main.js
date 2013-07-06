@@ -288,7 +288,7 @@ function logview(selector) {
 }
 
 
-var wsurl = ['http://', window.location.host, window.relativeRoot, '/ws'];
+var wsurl = [window.location.protocol, '//', window.location.host, window.relativeRoot, '/ws'];
 wsurl = wsurl.join('');
 
 var socket = new SockJS(wsurl);
@@ -305,7 +305,7 @@ function onClose() {
 
   window.setTimeout(function () {
     socketRetries -= 1;
-    window.socket = new WebSocket(wsurl);
+    window.socket = new SockJS(wsurl);
     socket.onopen = onOpen;
     socket.onclose = onClose;
     socket.onmessage = onMessage;
