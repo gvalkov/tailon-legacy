@@ -401,8 +401,8 @@ cmdmodel.on('change', function(model) {
 
 // visual effects
 $('.select2-choice').hover(
-  function () {$(this).find('div b').addClass('hovered');},
-  function () {$(this).find('div b').removeClass('hovered');}
+  function () {$(this).find('.select2-arrow').addClass('hovered');},
+  function () {$(this).find('.select2-arrow').removeClass('hovered');}
 );
 
 
