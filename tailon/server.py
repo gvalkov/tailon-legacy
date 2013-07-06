@@ -229,8 +229,10 @@ class Application(web.Application):
           [r'/', Index],
         ]
 
-        for route in routes:
+        # tornado is specific about routes being a list of tuples
+        for n, route in enumerate(routes):
             route[0] = os.path.join('/', prefix, route[0].lstrip('/'))
+            routes[n] = tuple(route)
         
         routes += wsroutes.urls
 
