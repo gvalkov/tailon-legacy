@@ -9,8 +9,6 @@ the following unix commands::
     tail -f | grep
     tail -f | awk
 
-Tailon is under development.
-
 Screenshots
 -----------
 
@@ -91,6 +89,31 @@ Tailon's server-side functionality is documented in its help message::
         - '/var/log/xorg.[0-10].log'
         - 'cron':             # sub-section (not implemented yet)
             - '/var/log/cron*'
+
+Usage with nginx
+----------------
+
+Two things need be done in order to get tailon running with nginx:
+
+1) Run tailon, binding it to localhost and specifiying a relative
+   root of your liking. Example::
+
+.. code-block:: bash
+
+    $ tailon -f /var/log/nginx/* -b localhost:8084 -r '/tailon/'
+
+2) Add the following location directives to ``nginx.conf``::
+
+    location /tailon/ws {
+        proxy_pass http://localhost:8084/tailon/ws;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }   
+
+    location /tailon {
+        proxy_pass http://localhost:8084;
+    }  
 
 Security
 --------
