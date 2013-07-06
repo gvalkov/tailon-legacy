@@ -6,7 +6,7 @@ from os.path import abspath, dirname, join
 from setuptools import setup
 
 classifiers = (
-    'Development Status :: 3 - Alpha',
+    'Development Status :: 4 - Beta',
     'Programming Language :: Python :: 2.7',
     'Programming Language :: Python :: 3',
     'Programming Language :: Python :: 3.1',
