@@ -288,9 +288,10 @@ function logview(selector) {
 }
 
 
-var wsurl = ['ws://', window.location.host, window.relativeRoot, '/ws'];
+var wsurl = ['http://', window.location.host, window.relativeRoot, '/ws'];
 wsurl = wsurl.join('');
-var socket = new WebSocket(wsurl);
+
+var socket = new SockJS(wsurl);
 function onOpen() {
   connected = true;
 }

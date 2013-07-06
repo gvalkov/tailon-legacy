@@ -8,6 +8,7 @@ from subprocess import Popen, STDOUT, PIPE
 from tornado import web, websocket, gen, ioloop
 from tornado.escape import json_encode, json_decode
 from tornado.process import Subprocess
+from sockjs.tornado import SockJSRouter, SockJSConnection
 
 STREAM = Subprocess.STREAM
 log = logging.getLogger('logtail')
@@ -103,7 +104,7 @@ class Fetch(BaseHandler):
         with open(path) as fh:
             self.write(fh.read())  # todo: stream
 
-class WebsocketCommands(websocket.WebSocketHandler):
+class WebsocketCommands(SockJSConnection):
     def __init__(self, *args, **kw):
         super(WebsocketCommands, self).__init__(*args, **kw)
 
@@ -211,12 +212,15 @@ class WebsocketCommands(websocket.WebSocketHandler):
         log.debug('connection closed')
 
     def wjson(self, data):
-        return self.write_message(json_encode(data))
+        return self.send(json_encode(data))
 
 class Application(web.Application):
     here = dirname(__file__)
 
     def __init__(self, config, cconfig={}, template_dir=None, assets_dir=None):
+        wsroutes = SockJSRouter(WebsocketCommands, '/ws')
+        WebsocketCommands.application = self
+
         routes = [
           (r'/assets/(.*)', web.StaticFileHandler, {'path': pjoin(self.here, '../assets/')}),
           (r'/files', Files),
@@ -224,6 +228,8 @@ class Application(web.Application):
           (r'/', Index),
           (r'/ws', WebsocketCommands),
         ]
+        routes += wsroutes.urls
+
 
         if not template_dir: pjoin(self.here, '../templates')
         if not assets_dir:   pjoin(self.here, '../assets')

@@ -29,7 +29,10 @@ kw = {
     'keywords'         : 'log monitoring tail',
     'classifiers'      : classifiers,
     'packages'         : ['tailon'],
-    'install_requires' : ['tornado>=3.0.1', 'PyYAML>=3.10'],
+    'install_requires' : [
+        'tornado>=3.0.1',
+        'sockjs-tornado==1.0.0',
+        'PyYAML>=3.10'],
     'entry_points'     : {'console_scripts':['tailon = tailon.main:main']},
     'zip_safe'         : False,
     'package_data'     : {
