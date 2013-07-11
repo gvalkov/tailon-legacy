@@ -135,6 +135,9 @@ through input redirection).
 Todo
 ----
 
+  - Investigate the use of seccomp_ for commands that do not implement
+    sandboxing themselves.
+
   - My longterm goal is to bring as many ideas from multitail_ into
     tailon as possible.
 
@@ -173,4 +176,5 @@ Tailon is released under the terms of the `New BSD License`_.
 .. _`log.io`:  http://logio.org/
 .. _this:      http://www.iconfinder.com/icondetails/15150/48/terminal_icon
 .. _sandbox:   http://www.gnu.org/software/gawk/manual/html_node/Options.html#index-g_t_0040code_007b_002dS_007d-option-277
+.. _seccomp:   http://en.wikipedia.org/wiki/Seccomp
 .. _`New BSD License`: https://raw.github.com/gvalkov/tailon/master/LICENSE
