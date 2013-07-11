@@ -32,18 +32,17 @@
     <div class='toolbar-item'>
       <select id='logselect' tabindex='1'>
         <option data-size='1' data-mtime='1' value=''></option>
-      {% for f in files %}
+        {% for f in files %}
         <option data-size="{{f[1]}}" data-mtime="{{f[2]}}" value="{{f[0]}}">{{f[0]}}</option>
-      {% end %}
+        {% end %}
       </select>
     </div>
 
     <div class='toolbar-item'>
       <select id='modeselect' tabindex='2'>
-        <option value='tail'>Tail</option>
-        <option value='grep'>Grep</option>
-        <option value='awk'>Awk</option>
-        <option value='sed'>Sed</option>
+        {% for cmd in commands %}
+        <option value='{{cmd}}'>{{cmd.capitalize()}}</option>
+        {% end %}
       </select>
     </div>
 

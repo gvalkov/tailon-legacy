@@ -10,7 +10,7 @@ import pkg_resources
 
 from tornado import ioloop, httpserver
 from tailon import argparse
-from tailon.server import Application
+from tailon.server import Application, Commands
 from tailon.version import version_verbose
 
 
@@ -56,6 +56,7 @@ def parseconfig(cfg):
         'port': port,
         'addr': addr,
         'debug': raw_config.get('debug', False),
+        'commands': raw_config.get('commands', ['tail', 'grep', 'awk']),
         'allow-transfers': raw_config.get('allow-transfers', False),
         'relative-root':   raw_config.get('relative-root', '/'),
     }
@@ -94,6 +95,7 @@ def parseopts(args=None):
       bind: 0.0.0.0:8080      # address and port to bind on
       allow-transfers: true   # allow file downloads
       relative-root: /tailon  # web app root path (default: '')
+      commands: [tail, grep, awk] # allowed commands
 
       files:
         - '/var/log/messages'
@@ -121,6 +123,8 @@ def parseopts(args=None):
     arg('-b', '--bind', metavar='addr:port', help='listen on the specified address and port')
     arg('-r', '--relative-root', metavar='path', default='', help='web app root path')
     arg('-a', '--allow-transfers', action='store_true', help='allow file downloads')
+    arg('-m', '--commands', nargs='*', choices=Commands.names, metavar='cmd',
+        default=['tail', 'grep', 'awk'], help='allowed commands (default: tail grep awk)')
 
     return p, p.parse_args(args)
 
@@ -133,6 +137,7 @@ def main_config(opts):
             'port': port,
             'addr': addr,
             'files': {'__ungrouped__':[]},
+            'commands': opts.commands,
             'allow-transfers': opts.allow_transfers,
             'relative-root': opts.__dict__.get('relative_root', ''),
             'debug': opts.__dict__.get('debug', False),

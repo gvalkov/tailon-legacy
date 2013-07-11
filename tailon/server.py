@@ -16,6 +16,8 @@ io_loop = ioloop.IOLoop.instance()
 
 
 class Commands:
+    names = 'awk', 'sed', 'grep', 'tail'
+
     def __init__(self, grep='grep', awk='gawk', tail='tail', sed='sed'):
         self.grepexe = grep
         self.awkexe = awk
@@ -77,10 +79,14 @@ class BaseHandler(web.RequestHandler):
 class Index(BaseHandler):
     def get(self):
         files = self.config['files']['__ungrouped__']
-        root = self.config['relative-root']
-        files = Files.statfiles(files)
-        cconfig = json_encode(self.cconfig)
-        self.render('index.html', files=files, root=root, client_config=cconfig)
+        ctx = {
+            'files': Files.statfiles(files),
+            'commands': self.config['commands'],
+            'root': self.config['relative-root'],
+            'client_config': json_encode(self.cconfig),
+        }
+
+        self.render('index.html', **ctx)
 
 class Files(BaseHandler):
     @staticmethod
@@ -166,11 +172,12 @@ class WebsocketCommands(SockJSConnection):
 
     def on_message(self, message):
         msg = json_decode(message)
+        cmds = self.config['commands']
         log.debug('received message: %s', msg)
 
         self.killall()
 
-        if 'tail' in msg:
+        if 'tail' in msg and 'tail' in cmds:
             fn = msg['tail']
             if fn in self.config['files']['__ungrouped__']:
                 n = msg.get('last', 10)
@@ -181,7 +188,7 @@ class WebsocketCommands(SockJSConnection):
                 self.tail.stdout.read_until_close(outcb, outcb)
                 self.tail.stderr.read_until_close(errcb, errcb)
 
-        elif 'grep' in msg:
+        elif 'grep' in msg and 'grep' in cmds:
             fn = msg['grep']
             if fn in self.config['files']['__ungrouped__']:
                 n = msg.get('last', 10)
@@ -196,7 +203,7 @@ class WebsocketCommands(SockJSConnection):
                 self.grep.stdout.read_until_close(outcb, outcb)
                 self.grep.stderr.read_until_close(errcb, errcb)
 
-        elif 'awk' in msg:
+        elif 'awk' in msg and 'awk' in cmds:
             fn = msg['awk']
             if fn in self.config['files']['__ungrouped__']:
                 n = msg.get('last', 10)
@@ -210,7 +217,7 @@ class WebsocketCommands(SockJSConnection):
                 self.awk.stdout.read_until_close(outcb, outcb)
                 self.awk.stderr.read_until_close(errcb, errcb)
 
-        elif 'sed' in msg:
+        elif 'sed' in msg and 'sed' in cmds:
             fn = msg['sed']
             if fn in self.config['files']['__ungrouped__']:
                 n = msg.get('last', 10)
