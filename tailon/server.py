@@ -155,33 +155,14 @@ class WebsocketCommands(SockJSConnection):
         self.wjson(msg)
 
     def killall(self):
-        if self.tail:
-            log.debug('killing tail process: %s', self.tail.pid)
-            self.tail.stdout.close()
-            self.tail.stderr.close()
-            self.tail.proc.kill()
-            self.tail = None
-
-        if self.awk:
-            log.debug('killing awk process: %s', self.awk.pid)
-            self.awk.stdout.close()
-            self.awk.stderr.close()
-            self.awk.proc.kill()
-            self.awk = None
-
-        if self.grep:
-            log.debug('killing grep process: %s', self.grep.pid)
-            self.grep.stdout.close()
-            self.grep.stderr.close()
-            self.grep.proc.kill()
-            self.grep = None
-
-        if self.sed:
-            log.debug('killing sed process: %s', self.sed.pid)
-            self.sed.stdout.close()
-            self.sed.stderr.close()
-            self.sed.proc.kill()
-            self.sed = None
+        for i in 'tail', 'awk', 'grep', 'sed':
+            var = getattr(self, i)
+            if var:
+                log.debug('killing %s process: %s', i, var.pid)
+                var.stdout.close()
+                var.stderr.close()
+                var.proc.kill()
+                var = None
 
     def on_message(self, message):
         msg = json_decode(message)
