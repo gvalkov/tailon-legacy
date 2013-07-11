@@ -120,6 +120,7 @@ var ScriptView = Backbone.View.extend({
 
   _placeholders: {
     'awk': '{print $0; fflush()}',
+    'sed': 's|.*|&,',
     'grep': '.*'
   },
 

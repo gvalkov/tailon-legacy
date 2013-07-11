@@ -16,11 +16,13 @@ io_loop = ioloop.IOLoop.instance()
 
 
 class Commands:
-    def __init__(self, grep='grep', awk='gawk', tail='tail'):
+    def __init__(self, grep='grep', awk='gawk', tail='tail', sed='sed'):
         self.grepexe = grep
         self.awkexe = awk
         self.tailexe = tail
+        self.sedexe = sed
 
+    # @todo: factor out common logic
     def awk(self, script, fn, stdout, stderr, **kw):
         cmd = [self.awkexe, '--sandbox', script]
         if fn: cmd.append(fn)
@@ -33,6 +35,13 @@ class Commands:
         if fn: cmd.append(fn)
         p = Subprocess(cmd, stdout=stdout, stderr=stderr, **kw)
         log.debug('running grep %s, pid: %s', cmd, p.proc.pid)
+        return p
+
+    def sed(self, script, fn, stdout, stderr, **kw):
+        cmd = [self.sedexe, '-u', '-e', script]
+        if fn: cmd.append(fn)
+        p = Subprocess(cmd, stdout=stdout, stderr=stderr, **kw)
+        log.debug('running sed %s, pid: %s', cmd, p.proc.pid)
         return p
 
     def tail(self, n, fn, stdout, stderr, **kw):
@@ -51,6 +60,12 @@ class Commands:
         grep = self.grep(regex, None, stdout=STREAM, stderr=STREAM, stdin=tail.stdout)
         tail.stdout.close()
         return tail, grep
+
+    def tail_sed(self, n, fn, script, stdout, stderr):
+        tail = self.tail(n, fn, stdout=PIPE, stderr=STREAM)
+        sed = self.sed(script, None, stdout=STREAM, stderr=STREAM, stdin=tail.stdout)
+        tail.stdout.close()
+        return tail, sed
 
 
 class BaseHandler(web.RequestHandler):
@@ -114,6 +129,7 @@ class WebsocketCommands(SockJSConnection):
         self.tail = None
         self.grep = None
         self.awk = None
+        self.sed = None
 
     def stdout_callback(self, fn, stream, data):
         # log.debug('stdout: %s\n', data.decode('utf8'))
@@ -159,6 +175,13 @@ class WebsocketCommands(SockJSConnection):
             self.grep.stderr.close()
             self.grep.proc.kill()
             self.grep = None
+
+        if self.sed:
+            log.debug('killing sed process: %s', self.sed.pid)
+            self.sed.stdout.close()
+            self.sed.stderr.close()
+            self.sed.proc.kill()
+            self.sed = None
 
     def on_message(self, message):
         msg = json_decode(message)
@@ -206,6 +229,20 @@ class WebsocketCommands(SockJSConnection):
                 self.awk.stdout.read_until_close(outcb, outcb)
                 self.awk.stderr.read_until_close(errcb, errcb)
 
+        elif 'sed' in msg:
+            fn = msg['sed']
+            if fn in self.config['files']['__ungrouped__']:
+                n = msg.get('last', 10)
+                script = msg.get('script', 's|.*|&|')
+
+                self.tail, self.sed = self.cmd.tail_sed(n, fn, script, STREAM, STREAM)
+
+                outcb = partial(self.stdout_callback, fn, self.sed.stdout)
+                errcb = partial(self.stderr_callback, fn, self.sed.stderr)
+                # self.tail.stderr.read_until_close(errcb, errcb)
+                self.sed.stdout.read_until_close(outcb, outcb)
+                self.sed.stderr.read_until_close(errcb, errcb)
+
     def on_close(self):
         self.killall()
         self.connected = False
@@ -233,7 +270,7 @@ class Application(web.Application):
         for n, route in enumerate(routes):
             route[0] = os.path.join('/', prefix, route[0].lstrip('/'))
             routes[n] = tuple(route)
-        
+
         routes += wsroutes.urls
 
         # import pprint
@@ -245,12 +282,12 @@ class Application(web.Application):
         log.debug('template dir: %s', template_dir)
         log.debug('static dir: %s', assets_dir)
 
-        settings = { 
+        settings = {
           'static_path':   assets_dir,
           'template_path': template_dir,
           'debug': config['debug'],
         }
 
         super(Application, self).__init__(routes, **settings)
-        self.config = config 
+        self.config = config
         self.cconfig = cconfig
