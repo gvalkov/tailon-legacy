@@ -9,7 +9,6 @@ classifiers = (
     'Development Status :: 4 - Beta',
     'Programming Language :: Python :: 2.7',
     'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.1',
     'Programming Language :: Python :: 3.2',
     'Programming Language :: Python :: 3.3',
     'License :: OSI Approved :: BSD License',
@@ -30,7 +29,7 @@ kw = {
     'classifiers'      : classifiers,
     'packages'         : ['tailon'],
     'install_requires' : [
-        'tornado>=3.0.1',
+        'tornado>=3.1',
         'sockjs-tornado==1.0.0',
         'PyYAML>=3.10'],
     'entry_points'     : {'console_scripts':['tailon = tailon.main:main']},
