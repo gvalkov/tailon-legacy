@@ -8,6 +8,7 @@ the following unix commands::
     tail -f
     tail -f | grep
     tail -f | awk
+    tail -f | sed
 
 Screenshots
 -----------
@@ -62,33 +63,36 @@ Tailon's server-side functionality is documented in its help message::
 
     $ tailon --help
     Usage: tailon [-c path] [-f path [path ...]] [-h] [-d] [-v] [-b addr:port]
-                  [-r path] [-a]
-
+                  [-r path] [-a] [-m [cmd [cmd ...]]]
+    
     Tailon is a webapp for looking at and searching through log files.
-
+    
     Required arguments:
-      -c, --config path            yaml config file
-      -f, --files path [path ...]  list of files or file wildcards to expose
-
+      -c, --config path               yaml config file
+      -f, --files path [path ...]     list of files or file wildcards to expose
+    
     Optional arguments:
-      -h, --help                   show this help message and exit
-      -d, --debug                  show debug messages
-      -v, --version                show program's version number and exit
-      -b, --bind addr:port         listen on the specified address and port
-      -r, --relative-root path     web app root path
-      -a, --allow-transfers        allow file downloads
-
+      -h, --help                      show this help message and exit
+      -d, --debug                     show debug messages
+      -v, --version                   show program's version number and exit
+      -b, --bind addr:port            listen on the specified address and port
+      -r, --relative-root path        web app root path
+      -a, --allow-transfers           allow file downloads
+      -m, --commands [cmd [cmd ...]]  allowed commands (default: tail grep awk)
+    
     Example config file:
-      bind: 0.0.0.0:8080      # address and port to bind on 
+      bind: 0.0.0.0:8080      # address and port to bind on
       allow-transfers: true   # allow file downloads
       relative-root: /tailon  # web app root path (default: '')
-
+      commands: [tail, grep, awk] # allowed commands
+    
       files:
         - '/var/log/messages'
         - '/var/log/nginx/*.log'
         - '/var/log/xorg.[0-10].log'
-        - 'cron':             # sub-section (not implemented yet)
+        - 'cron':             # sub-section
             - '/var/log/cron*'
+
 
 Usage with nginx
 ----------------
@@ -138,16 +142,11 @@ Todo
   - Investigate the use of seccomp_ for commands that do not implement
     sandboxing themselves.
 
-  - My longterm goal is to bring as many ideas from multitail_ into
-    tailon as possible.
-
   - Windows/FreeBSD support. While tailon runs on these platforms, the
     availability and functionality of Coreutils may prevent tailon
     from working as expected. Including a cross-platform Python
     version of tail and grep will guarantee a set of functionality
     available to all platforms.
-
-  - Tabbed interface.
 
   - Visual/Audible alarms on log activity.
 
