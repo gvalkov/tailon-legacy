@@ -147,7 +147,9 @@ var ScriptView = Backbone.View.extend({
 });
 
 var PanelView = Backbone.View.extend({
-  initialize: function() {
+  initialize: function(options) {
+    this.options = options || {};
+
     this.listenTo(this.model, 'change:panel-hidden', this.hideshowpanel);
     this.listenTo(this.options.cmdmodel, 'change:file', this.updatehrefs); // don't know
 
