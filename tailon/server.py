@@ -18,11 +18,14 @@ io_loop = ioloop.IOLoop.instance()
 class Commands:
     names = 'awk', 'sed', 'grep', 'tail'
 
-    def __init__(self, grep='grep', awk='gawk', tail='tail', sed='sed'):
+    def __init__(self, grep='grep', awk='gawk',
+                       tail='tail', sed='sed',
+                       powershell='powershell.exe'):
         self.grepexe = grep
         self.awkexe = awk
         self.tailexe = tail
         self.sedexe = sed
+        self.powershellexe = powershell
 
     # @todo: factor out common logic
     def awk(self, script, fn, stdout, stderr, **kw):
@@ -46,11 +49,19 @@ class Commands:
         log.debug('running sed %s, pid: %s', cmd, p.proc.pid)
         return p
 
-    def tail(self, n, fn, stdout, stderr, **kw):
+    def tail_unix(self, n, fn, stdout, stderr, **kw):
         cmd = (self.tailexe, '-n', str(n), '-f', fn)
         p = Subprocess(cmd, stdout=stdout, stderr=stderr, **kw)
         log.debug('running tail %s, pid: %s', cmd, p.proc.pid)
         return p
+
+    def tail_powershell(self, n, fn, stdout, stderr, **kw):
+        cmd = (self.tailexe, '-n', str(n), '-f', fn)
+        p = Subprocess(cmd, stdout=stdout, stderr=stderr, **kw)
+        log.debug('running tail %s, pid: %s', cmd, p.proc.pid)
+        return p
+
+    tail = tail_unix
 
     def tail_awk(self, n, fn, script, stdout, stderr):
         tail = self.tail(n, fn, stdout=PIPE, stderr=STREAM)
@@ -79,10 +90,12 @@ class BaseHandler(web.RequestHandler):
 class Index(BaseHandler):
     def get(self):
         files = self.config['files']['__ungrouped__']
+        root = self.config['relative-root']
+
         ctx = {
             'files': Files.statfiles(files),
             'commands': self.config['commands'],
-            'root': self.config['relative-root'],
+            'root': root,
             'client_config': json_encode(self.cconfig),
         }
 
@@ -244,7 +257,7 @@ class Application(web.Application):
 
     def __init__(self, config, cconfig={}, template_dir=None, assets_dir=None):
         prefix = config['relative-root']
-        wsroutes = SockJSRouter(WebsocketCommands, os.path.join('/', prefix, 'ws'))
+        wsroutes = SockJSRouter(WebsocketCommands, pjoin('/', prefix, 'ws'))
         WebsocketCommands.application = self
 
         routes = [
@@ -256,7 +269,7 @@ class Application(web.Application):
 
         # tornado is specific about routes being a list of tuples
         for n, route in enumerate(routes):
-            route[0] = os.path.join('/', prefix, route[0].lstrip('/'))
+            route[0] = pjoin('/', prefix, route[0].lstrip('/'))
             routes[n] = tuple(route)
 
         routes += wsroutes.urls
