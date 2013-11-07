@@ -290,8 +290,8 @@ function logview(selector) {
   return self;
 }
 
-
-var wsurl = [window.location.protocol, '//', window.location.host, window.relativeRoot, '/ws'];
+var wspath = endsWith(window.relativeRoot, '/') ? 'ws' : '/ws';
+var wsurl = [window.location.protocol, '//', window.location.host, window.relativeRoot, wspath];
 wsurl = wsurl.join('');
 
 var socket = new SockJS(wsurl);
