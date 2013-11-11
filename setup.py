@@ -9,7 +9,6 @@ classifiers = (
     'Development Status :: 4 - Beta',
     'Programming Language :: Python :: 2.7',
     'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.2',
     'Programming Language :: Python :: 3.3',
     'License :: OSI Approved :: BSD License',
     'Intended Audience :: Developers',
@@ -23,16 +22,16 @@ kw = {
     'long_description' : open(join(abspath(dirname(__file__)), 'README.rst')).read(),
     'author'           : 'Georgi Valkov',
     'author_email'     : 'georgi.t.valkov@gmail.com',
-    'license'          : 'New BSD License',
+    'license'          : 'Revised BSD License',
     'url'              : 'https://github.com/gvalkov/tailon',
     'keywords'         : 'log monitoring tail',
     'classifiers'      : classifiers,
     'packages'         : ['tailon'],
     'install_requires' : [
-        'tornado>=3.1',
+        'tornado>=3.1.1',
         'sockjs-tornado==1.0.0',
         'PyYAML>=3.10'],
-    'entry_points'     : {'console_scripts':['tailon = tailon.main:main']},
+    'entry_points'     : {'console_scripts': ['tailon = tailon.main:main']},
     'zip_safe'         : False,
     'package_data'     : {
         'tailon' : ['../assets/js/vendor/*',
@@ -46,4 +45,5 @@ kw = {
     'include_package_data': False,
 }
 
-setup(**kw)
+if __name__ == '__main__':
+    setup(**kw)
