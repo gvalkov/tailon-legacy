@@ -13,6 +13,8 @@ assets/css/main.css
 # Packages
 *.egg
 *.egg-info
+__pycache__/
+*.py[oc]
 dist
 build
 eggs
