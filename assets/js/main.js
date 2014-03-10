@@ -63,7 +63,7 @@ var ModeSelectView = Backbone.View.extend({
   },
 
   modechange: function (change) {
-    this.model.set({'mode':change.val});
+    this.model.set({'mode': change.val, 'script': null});
   },
 
   render: function() {
@@ -87,7 +87,7 @@ var FileSelectView = Backbone.View.extend({
   },
 
   filechange: function(change) {
-    this.model.set({'file':change.val});
+    this.model.set({'file': change.val});
   },
 
   render: function() {

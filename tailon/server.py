@@ -284,7 +284,7 @@ class Application(web.Application):
         log.debug('static dir: %s', assets_dir)
 
         settings = {
-          'static_path':   assets_dir,
+          'static_path': assets_dir,
           'template_path': template_dir,
           'debug': config['debug'],
         }
