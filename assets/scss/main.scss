@@ -216,6 +216,7 @@ body {
 
   .log-entry {
     display: block;
+    white-space: pre;
   }
 
   .log-entry-current {
@@ -243,6 +244,6 @@ input::selection {
 }
 
 input::-webkit-input-placeholder {@include input-placeholder();}
-input:-moz-placeholder {@include input-placeholder();} 
+input:-moz-placeholder {@include input-placeholder();}
 input::-moz-placeholder {@include input-placeholder();}
 input:-ms-input-placeholder {@include input-placeholder();}
