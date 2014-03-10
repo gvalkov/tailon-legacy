@@ -14,7 +14,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 project = u'tailon'
-copyright = u'2013, Georgi Valkov'
+copyright = u'2013-2014, Georgi Valkov'
 
 release = kw['version']
 version = release
