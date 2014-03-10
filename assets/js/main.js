@@ -36,6 +36,20 @@ function resizeLogview() {
   logviewer.container.height(window.innerHeight - toolbarHeight);
 }
 
+// escapeHtml from mustache.js
+var escapeEntityMap = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  "/": '&#x2F;'
+};
+
+function escapeHtml(string) {
+  return String(string).replace(/[&<>\/]/g, function (s) {
+    return escapeEntityMap[s];
+  });
+}
+
 // models
 var CommandModel = Backbone.Model.extend({
   defaults: {
@@ -337,7 +351,7 @@ function onMessage(e) {
   } else {
     $.each(data, function (fn, payload) {
       for (i=0; i<payload.length; i++) {
-        line = payload[i];
+        line = escapeHtml(payload[i]);
         spans.push(logEntry(line.replace(/\n$/, '')));
       }
     });
