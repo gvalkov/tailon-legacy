@@ -28,7 +28,7 @@ kw = {
     'classifiers'      : classifiers,
     'packages'         : ['tailon'],
     'install_requires' : [
-        'tornado>=3.1.1',
+        'tornado>=3.2.0',
         'sockjs-tornado==1.0.0',
         'PyYAML>=3.10'],
     'entry_points'     : {'console_scripts': ['tailon = tailon.main:main']},
