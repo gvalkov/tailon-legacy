@@ -4,5 +4,7 @@ include LICENSE
 include assets/js/*
 include assets/js/vendor/*
 include assets/css/*
+include assets/favicon.ico
+include assets/fonts/*
 include templates/*
 prune assets/scss

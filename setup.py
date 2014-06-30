@@ -15,34 +15,31 @@ classifiers = (
     'Operating System :: POSIX :: Linux',
 )
 
+requirements = (
+    'tornado>=3.2.2',
+    'sockjs-tornado==1.0.0',
+    'PyYAML>=3.11',
+)
+
+here = abspath(dirname(__file__))
 kw = {
-    'name'             : 'tailon',
-    'version'          : version,
-    'description'      : 'Webapp for looking at and searching through log files',
-    'long_description' : open(join(abspath(dirname(__file__)), 'README.rst')).read(),
-    'author'           : 'Georgi Valkov',
-    'author_email'     : 'georgi.t.valkov@gmail.com',
-    'license'          : 'Revised BSD License',
-    'url'              : 'https://github.com/gvalkov/tailon',
-    'keywords'         : 'log monitoring tail',
-    'classifiers'      : classifiers,
-    'packages'         : ['tailon'],
-    'install_requires' : [
-        'tornado>=3.2.0',
-        'sockjs-tornado==1.0.0',
-        'PyYAML>=3.10'],
-    'entry_points'     : {'console_scripts': ['tailon = tailon.main:main']},
-    'zip_safe'         : False,
-    'package_data'     : {
-        'tailon' : ['../assets/js/vendor/*',
-                    '../assets/js/main.js',
-                    '../assets/css/*',
-                    '../assets/favicon.ico',
-                    '../assets/fonts/*',
-                    '../templates/*',
-                    ]
-        },
+    'name':             'tailon',
+    'version':          version,
+    'description':      'Webapp for looking at and searching through log files',
+    'long_description': open(join(here, 'README.rst')).read(),
+
+    'author':           'Georgi Valkov',
+    'author_email':     'georgi.t.valkov@gmail.com',
+    'license':          'Revised BSD License',
+    'url':              'https://github.com/gvalkov/tailon',
+    'keywords':         'log monitoring tail',
+    'classifiers':      classifiers,
+
+    'packages':         ['tailon'],
+    'install_requires': requirements,
+    'entry_points':     {'console_scripts': ['tailon = tailon.main:main']},
     'include_package_data': False,
+    'zip_safe': False,
 }
 
 if __name__ == '__main__':
