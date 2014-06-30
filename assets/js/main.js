@@ -184,7 +184,7 @@ var PanelView = Backbone.View.extend({
     if (this.model.get('panel-hidden')) {
       this.$el.slideUp('fast');
     } else {
-      this.$el.slideDown('fast');
+      this.$el.show();
     }
   },
 
