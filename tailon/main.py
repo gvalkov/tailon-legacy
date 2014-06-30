@@ -87,22 +87,27 @@ def parseconfig(cfg):
 
 def parseopts(args=None):
     description = '''
-    Tailon is a webapp for looking at and searching through log files.
+    Tailon is a web app for looking at and searching through log files.
     '''
 
     epilog = '''
     Example config file:
       bind: 0.0.0.0:8080      # address and port to bind on
-      allow-transfers: true   # allow file downloads
+      allow-transfers: true   # allow log file downloads
       relative-root: /tailon  # web app root path (default: '')
-      commands: [tail, grep, awk] # allowed commands
+      commands: [tail, grep]  # allowed commands
 
       files:
         - '/var/log/messages'
         - '/var/log/nginx/*.log'
         - '/var/log/xorg.[0-10].log'
-        - 'cron':             # sub-section
+        - 'cron':             # it's possible to add sub-sections
             - '/var/log/cron*'
+
+    Example command-lines:
+      tailon -f /var/log/messages /var/log/debug -m tail
+      tailon -f '/var/log/cron*' -a -b localhost:8080
+      tailon -c config.yaml -d
     '''
 
     p = argparse.ArgumentParser(formatter_class=CompactHelpFormatter,
@@ -122,7 +127,7 @@ def parseopts(args=None):
     arg('-v', '--version', action='version', version='tailon version %s' % version)
     arg('-b', '--bind', metavar='addr:port', help='listen on the specified address and port')
     arg('-r', '--relative-root', metavar='path', default='', help='web app root path')
-    arg('-a', '--allow-transfers', action='store_true', help='allow file downloads')
+    arg('-a', '--allow-transfers', action='store_true', help='allow log file downloads')
     arg('-m', '--commands', nargs='*', choices=Commands.names, metavar='cmd',
         default=['tail', 'grep', 'awk'], help='allowed commands (default: tail grep awk)')
 
