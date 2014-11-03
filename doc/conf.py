@@ -1,14 +1,25 @@
 # -*- coding: utf-8 -*-
 
 import sys, os
+import alabaster
+
 sys.path.insert(0, os.path.abspath('..'))
 from setup import kw
 
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
-extensions = []
 templates_path = ['_templates']
 source_suffix = '.rst'
+
+extensions = [
+    'alabaster',
+    'sphinxcontrib.images'
+]
+
+images_config = {
+    'backend' : 'LightBox2',
+}
+
 #source_encoding = 'utf-8-sig'
 
 master_doc = 'index'
@@ -40,12 +51,11 @@ pygments_style = 'sphinx'
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
 
-if not on_rtd:
-    import sphinx_rtd_theme
-    html_theme = 'sphinx_rtd_theme'
-    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-else:
-    html_theme = 'default'
+html_theme_path = [alabaster.get_path()]
+html_theme = 'alabaster'
+html_sidebars = {
+   '**': []
+}
 
 #html_theme_options = {}
 #html_theme_path = []

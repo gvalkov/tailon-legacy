@@ -1,5 +1,5 @@
 Introduction
---------------------
+============
 
 Tailon is a self-hosted web application for looking at and searching
 through log files. It is little more than a fancy web wrapper around
@@ -13,17 +13,25 @@ the following commands::
 Screenshots
 -----------
 
-.. image::  https://github.com/gvalkov/screenshots/raw/master/thumb/tailon-tail.png
-   :target: https://github.com/gvalkov/screenshots/raw/master/full/tailon-tail.png
-   :alt:    Tail
+.. thumbnail::  select.png
+   :width: 22%
+   :group: screenshots
+   :alt:   Select
 
-.. image::  https://github.com/gvalkov/screenshots/raw/master/thumb/tailon-grep.png
-   :target: https://github.com/gvalkov/screenshots/raw/master/full/tailon-grep.png
-   :alt:    Tail | Grep
+.. thumbnail::  tail.png
+   :width: 22%
+   :group: screenshots
+   :alt:   Tail
 
-.. image::  https://github.com/gvalkov/screenshots/raw/master/thumb/tailon-awk.png
-   :target: https://github.com/gvalkov/screenshots/raw/master/full/tailon-awk.png
-   :alt:    Tail | Awk
+.. thumbnail::  grep.png
+   :width: 22%
+   :group: screenshots
+   :alt:   Tail | Grep
+
+.. thumbnail::  awk.png
+   :width: 22%
+   :group: screenshots
+   :alt:   Tail | Awk
 
 
 Installation
@@ -47,11 +55,12 @@ Tailon can also be installed manually:
     $ python setup.py install
 
 
-Usage
------
+Quick start
+-----------
 
-Tailon is a command-line utility that spawns a http server. Tailon is
-configured using a yaml config file or its command-line interface.
+Tailon is a command-line tool that spawns a http server. It can be
+configured entirely from its command-line interface or through a yaml
+config file.
 
 To get started with tailon you give it a list of files that you wish
 to monitor:
@@ -61,7 +70,7 @@ to monitor:
     $ tailon -f /var/log/nginx/* /var/log/apache/{access,error}.log
 
 If at least one of the specified files is readable by the current user,
-tailon will start listening on http://localhost:8080 .
+tailon will start listening on http://localhost:8080.
 
 Tailon's server-side functionality is documented in its help message::
 
@@ -150,18 +159,17 @@ using input redirection.
 Todo
 ----
 
-  - Investigate the use of seccomp_ for commands that do not implement
-    sandboxing themselves.
+  - There are still parts of the UI that haven't been implemented.
 
-  - Windows/FreeBSD support. While tailon runs on these platforms, the
-    availability and functionality of Coreutils may prevent tailon
-    from working as expected. Including a cross-platform Python
-    version of tail and grep will guarantee a minimum set of
-    functionality available to all platforms.
+  - Fix select2 related styling glitches.
 
   - Visual/Audible alarms on log activity.
 
   - Interface themes.
+
+  - Windows support.
+
+  - Investigate the use of seccomp_ on Linux for unsafe commands.
 
 
 Similar Projects
@@ -192,12 +200,3 @@ Tailon is released under the terms of the `Revised BSD License`_.
 .. _sandbox:   http://www.gnu.org/software/gawk/manual/html_node/Options.html#index-g_t_0040code_007b_002dS_007d-option-277
 .. _seccomp:   http://en.wikipedia.org/wiki/Seccomp
 .. _`Revised BSD License`: https://raw.github.com/gvalkov/tailon/master/LICENSE
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
