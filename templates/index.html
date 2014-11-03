@@ -32,8 +32,21 @@
     <div class='toolbar-item'>
       <select id='logselect' tabindex='1'>
         <option data-size='1' data-mtime='1' value=''></option>
-        {% for f in files %}
-        <option data-size="{{f[1]}}" data-mtime="{{f[2]}}" value="{{f[0]}}">{{f[0]}}</option>
+        {# ----------------------------------- #}
+        {% if files.keys() == {'__ungrouped__'} %}
+          {% for fn in files['__ungrouped__'] %}
+          <option data-size="{{fn[1]}}" data-mtime="{{fn[2]}}" value="{{fn[0]}}">{{fn[0]}}</option>
+          {% end %}
+        {# ----------------------------------- #}
+        {% else %}
+          {% for group, lst in files.items() %}
+          {% set group = group if group != '__ungrouped__' else 'ungrouped' %}
+          <optgroup label="{{group}}">
+            {% for fn in lst %}
+            <option data-size="{{fn[1]}}" data-mtime="{{fn[2]}}" value="{{fn[0]}}">{{fn[0]}}</option>
+            {% end %}
+          </optgroup>
+          {% end %}
         {% end %}
       </select>
     </div>

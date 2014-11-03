@@ -95,13 +95,14 @@ class BaseHandler(web.RequestHandler):
 
 class Index(BaseHandler):
     def get(self):
-        files = self.config['files']['__ungrouped__']
+        files = self.config['files']
+        files = {name: Files.statfiles(lst) for name, lst in files.items()}
         root = self.config['relative-root']
 
         ctx = {
-            'files': Files.statfiles(files),
+            'root':  root,
+            'files': files,
             'commands': self.config['commands'],
-            'root': root,
             'client_config': json_encode(self.client_config),
         }
 
@@ -116,6 +117,7 @@ class Files(BaseHandler):
             yield fn, getsize(fn), getmtime(fn)
 
     def get(self):
+        # TODO: Use this instead of the template.
         files = self.config['files']['__ungrouped__']
         files = Files.statfiles(files)
         res = {'files': list(files)}
@@ -135,7 +137,8 @@ class Fetch(BaseHandler):
         if not self.config['allow-transfers']:
             self.error(500, 'transfers not allowed'); return
 
-        if path not in self.config['files']['__ungrouped__']:
+        all_files = {i for values in self.config['files'].values() for i in values}
+        if path not in all_files:
             self.error(404, 'file not found'); return
 
         # basename = os.path.basename(path)
@@ -189,6 +192,10 @@ class WebsocketCommands(SockJSConnection):
                 var.proc.kill()
                 var = None
 
+    def file_exists(self, fn):
+        all_files = {i for values in self.config['files'].values() for i in values}
+        return fn in all_files
+
     def on_message(self, message):
         msg = json_decode(message)
         cmds = self.config['commands']
@@ -198,7 +205,8 @@ class WebsocketCommands(SockJSConnection):
 
         if 'tail' in msg and 'tail' in cmds:
             fn = msg['tail']
-            if fn in self.config['files']['__ungrouped__']:
+
+            if self.file_exists(fn):
                 n = msg.get('last', 10)
                 self.tail = self.cmd.tail(n, fn, STREAM, STREAM)
 
@@ -209,7 +217,7 @@ class WebsocketCommands(SockJSConnection):
 
         elif 'grep' in msg and 'grep' in cmds:
             fn = msg['grep']
-            if fn in self.config['files']['__ungrouped__']:
+            if self.file_exists(fn):
                 n = msg.get('last', 10)
                 regex = msg.get('script', '.*')
 
@@ -224,7 +232,7 @@ class WebsocketCommands(SockJSConnection):
 
         elif 'awk' in msg and 'awk' in cmds:
             fn = msg['awk']
-            if fn in self.config['files']['__ungrouped__']:
+            if self.file_exists(fn):
                 n = msg.get('last', 10)
                 script = msg.get('script', '{print $0}')
 
@@ -238,7 +246,7 @@ class WebsocketCommands(SockJSConnection):
 
         elif 'sed' in msg and 'sed' in cmds:
             fn = msg['sed']
-            if fn in self.config['files']['__ungrouped__']:
+            if self.file_exists(fn):
                 n = msg.get('last', 10)
                 script = msg.get('script', 's|.*|&|')
 
@@ -269,7 +277,7 @@ class Application(web.Application):
 
         routes = [
             [r'/assets/(.*)', web.StaticFileHandler, {'path': pjoin(self.here, '../assets/')}],
-            [r'/files', Files],
+            [r'/files', Files],  # TODO: Currently not used.
             [r'/fetch/(.*)', Fetch],
             [r'/', Index],
         ]
