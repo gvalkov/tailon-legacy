@@ -1,12 +1,14 @@
 // global $:false, jQuery:false
 // jshint laxcomma: true, sub: true
 
+//----------------------------------------------------------------------------
 // globals
 var logviewer = null;
 var connected = false;
 var socketRetries = 10;
 
-// utils
+//----------------------------------------------------------------------------
+// utility functions
 function formatBytes(size) {
   var units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
   var i = 0;
@@ -27,15 +29,6 @@ function endsWith(str, suffix) {
   return str.indexOf(suffix, str.length - suffix.length) !== -1;
 }
 
-function isInputFocused() {
-  return document.activeElement.nodeName === 'INPUT';
-}
-
-function resizeLogview() {
-  var toolbarHeight = (uimodel.get('pannel-hidden') ? 0 : $('.toolbar').height()); // todo
-  logviewer.container.height(window.innerHeight - toolbarHeight);
-}
-
 // escapeHtml from mustache.js
 var escapeEntityMap = {
   "&": "&amp;",
@@ -50,7 +43,25 @@ function escapeHtml(string) {
   });
 }
 
-// models
+//----------------------------------------------------------------------------
+function isInputFocused() {
+  return document.activeElement.nodeName === 'INPUT';
+}
+
+function resizeLogview() {
+  var toolbarHeight = (uimodel.get('pannel-hidden') ? 0 : $('.toolbar').height()); // todo
+  logviewer.container.height(window.innerHeight - toolbarHeight);
+}
+
+//----------------------------------------------------------------------------
+// more globals
+var wspath = endsWith(window.relativeRoot, '/') ? 'ws' : '/ws';
+var wsurl = [window.location.protocol, '//', window.location.host, window.relativeRoot, wspath];
+wsurl = wsurl.join('');
+
+//----------------------------------------------------------------------------
+// Models.
+//----------------------------------------------------------------------------
 var CommandModel = Backbone.Model.extend({
   defaults: {
     'mode': 'tail',
@@ -66,7 +77,9 @@ var UiModel = Backbone.Model.extend({
   }
 });
 
-// views
+//----------------------------------------------------------------------------
+// Views.
+//----------------------------------------------------------------------------
 var ModeSelectView = Backbone.View.extend({
   initialize: function() {
     this.render();
@@ -91,6 +104,7 @@ var ModeSelectView = Backbone.View.extend({
   }
 });
 
+//----------------------------------------------------------------------------
 var FileSelectView = Backbone.View.extend({
   initialize: function() {
     this.render();
@@ -118,6 +132,7 @@ var FileSelectView = Backbone.View.extend({
   }
 });
 
+//----------------------------------------------------------------------------
 var ScriptView = Backbone.View.extend({
   initialize: function() {
     this.listenTo(this.model, 'change:mode', this.rendermode);
@@ -160,6 +175,7 @@ var ScriptView = Backbone.View.extend({
   }
 });
 
+//----------------------------------------------------------------------------
 var PanelView = Backbone.View.extend({
   initialize: function(options) {
     this.options = options || {};
@@ -175,7 +191,7 @@ var PanelView = Backbone.View.extend({
     'click .toolbar-item .button-group .action-clear-logview': 'clearlogview'
   },
 
-  // update the download link whenever the selected file changes
+  // Update the download link whenever the selected file changes.
   updatehrefs: function() {
     this.$downloadA.attr('href', 'fetch/' + this.options.cmdmodel.get('file'));
   },
@@ -198,6 +214,7 @@ var PanelView = Backbone.View.extend({
 });
 
 
+//----------------------------------------------------------------------------
 var ActionsView = Backbone.View.extend({
   initialize: function() {
     this.listenTo(this.model, 'change:panel-hidden', this.hideshowactions);
@@ -220,7 +237,9 @@ var ActionsView = Backbone.View.extend({
   }
 });
 
-// logview
+//----------------------------------------------------------------------------
+// Logview "controller".
+//----------------------------------------------------------------------------
 function logview(selector) {
   var self = this
     , fragment = document.createDocumentFragment()
@@ -304,11 +323,12 @@ function logview(selector) {
   return self;
 }
 
-var wspath = endsWith(window.relativeRoot, '/') ? 'ws' : '/ws';
-var wsurl = [window.location.protocol, '//', window.location.host, window.relativeRoot, wspath];
-wsurl = wsurl.join('');
 
+//----------------------------------------------------------------------------
+// Communication with the server
+//----------------------------------------------------------------------------
 var socket = new SockJS(wsurl);
+
 function onOpen() {
   connected = true;
 }
@@ -393,11 +413,13 @@ function wscommand(m) {
   })();
 }
 
+//----------------------------------------------------------------------------
+// Connect everything together.
+logviewer = logview('#logviewer');
+
 socket.onopen = onOpen;
 socket.onclose = onClose;
 socket.onmessage = onMessage;
-
-logviewer = logview('#logviewer');
 
 window.cmdmodel = new CommandModel();
 window.uimodel = new UiModel();
@@ -416,6 +438,7 @@ cmdmodel.on('change', function(model) {
 });
 
 
+//----------------------------------------------------------------------------
 // visual effects
 $('.select2-choice').hover(
   function () {$(this).find('.select2-arrow').addClass('hovered');},
@@ -423,6 +446,7 @@ $('.select2-choice').hover(
 );
 
 
+//----------------------------------------------------------------------------
 // shortcuts:
 //   ctrl+l - clear screen (major conflict with 'go to addressbar')
 //   ctrl+= - increase font size (logview div only)

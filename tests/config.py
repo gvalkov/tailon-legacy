@@ -1,14 +1,17 @@
-import os, io
+#!/usr/bin/env python
+# -*- coding: utf-8; -*-
+
+import os
 import shutil
 import textwrap
 import tempfile
 import unittest
-
-from os.path import isdir, exists, dirname, join as pjoin
+from os.path import isdir, dirname, join as pjoin
 
 from tailon.main import parseconfig
 
 
+#-----------------------------------------------------------------------------
 class TemporaryFiles:
     def __init__(self, *args):
         self.args = args
@@ -22,7 +25,8 @@ class TemporaryFiles:
                 fn = pjoin(self.dir, fn)
                 if not isdir(dirname(fn)):
                     os.makedirs(dirname(fn))
-                with open(fn, 'w'): pass
+                with open(fn, 'w'):
+                    pass
                 os.chmod(fn, mode)
                 self.files.append(fn)
 
@@ -38,17 +42,20 @@ class TemporaryFiles:
         self.cleanup()
 
 
+#-----------------------------------------------------------------------------
 class TestConfigParse(unittest.TestCase):
     def setUp(self):
-        self.tmpf =  TemporaryFiles((['1.log', '2.log', '3.log'], 0o0644),
-                                    (['dir/a.log'], 0o0644),
-                                    (['dir/b.log'], 0o0644),
-                                    (['dir/c.log'], 0o0000))
+        self.tmpf = TemporaryFiles(
+            (['1.log', '2.log', '3.log'], 0o0644),
+            (['dir/a.log'], 0o0644),
+            (['dir/b.log'], 0o0644),
+            (['dir/c.log'], 0o0000)
+        )
         self.tmpf.setup()
 
     def tearDown(self):
         self.tmpf.cleanup()
-        
+
     def test_simple(self):
         config = '''\
         bind: 0.0.0.0:8080
@@ -104,8 +111,8 @@ class TestConfigParse(unittest.TestCase):
         '''.format(dir=self.tmpf.dir)
 
         with self.assertRaises(Exception):
-            cfg = parseconfig(textwrap.dedent(config))
-        
+            parseconfig(textwrap.dedent(config))
+
 
 if __name__ == '__main__':
     unittest.main()

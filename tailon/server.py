@@ -1,11 +1,13 @@
+# -*- coding: utf-8; -*-
+
 import os
 import logging
 
 from functools import partial
 from os.path import dirname, getsize, getmtime, join as pjoin
-from subprocess import Popen, STDOUT, PIPE
+from subprocess import PIPE
 
-from tornado import web, websocket, gen, ioloop
+from tornado import web, ioloop
 from tornado.escape import json_encode, json_decode
 from tornado.process import Subprocess
 from sockjs.tornado import SockJSRouter, SockJSConnection
@@ -15,12 +17,12 @@ log = logging.getLogger('logtail')
 io_loop = ioloop.IOLoop.instance()
 
 
+#-----------------------------------------------------------------------------
 class Commands:
     names = 'awk', 'sed', 'grep', 'tail'
 
-    def __init__(self, grep='grep', awk='gawk',
-                       tail='tail', sed='sed',
-                       powershell='powershell.exe'):
+    def __init__(self, grep='grep', awk='gawk', tail='tail', sed='sed',
+                 powershell='powershell.exe'):
         self.grepexe = grep
         self.awkexe = awk
         self.tailexe = tail
@@ -30,37 +32,41 @@ class Commands:
     # @todo: factor out common logic
     def awk(self, script, fn, stdout, stderr, **kw):
         cmd = [self.awkexe, '--sandbox', script]
-        if fn: cmd.append(fn)
+        if fn:
+            cmd.append(fn)
         p = Subprocess(cmd, stdout=stdout, stderr=stderr, **kw)
         log.debug('running awk %s, pid: %s', cmd, p.proc.pid)
         return p
 
     def grep(self, regex, fn, stdout, stderr, **kw):
         cmd = [self.grepexe, '--line-buffered', '--color=never', '-e', regex]
-        if fn: cmd.append(fn)
+        if fn:
+            cmd.append(fn)
         p = Subprocess(cmd, stdout=stdout, stderr=stderr, **kw)
         log.debug('running grep %s, pid: %s', cmd, p.proc.pid)
         return p
 
     def sed(self, script, fn, stdout, stderr, **kw):
         cmd = [self.sedexe, '-u', '-e', script]
-        if fn: cmd.append(fn)
+        if fn:
+            cmd.append(fn)
         p = Subprocess(cmd, stdout=stdout, stderr=stderr, **kw)
         log.debug('running sed %s, pid: %s', cmd, p.proc.pid)
         return p
 
     def tail_unix(self, n, fn, stdout, stderr, **kw):
-        cmd = (self.tailexe, '-n', str(n), '-f', fn)
+        cmd = [self.tailexe, '-n', str(n), '-f', fn]
         p = Subprocess(cmd, stdout=stdout, stderr=stderr, **kw)
         log.debug('running tail %s, pid: %s', cmd, p.proc.pid)
         return p
 
     def tail_powershell(self, n, fn, stdout, stderr, **kw):
-        cmd = (self.tailexe, '-n', str(n), '-f', fn)
+        cmd = [self.tailexe, '-n', str(n), '-f', fn]
         p = Subprocess(cmd, stdout=stdout, stderr=stderr, **kw)
         log.debug('running tail %s, pid: %s', cmd, p.proc.pid)
         return p
 
+    # TODO: Chose tail implementation dependencing on platform.
     tail = tail_unix
 
     def tail_awk(self, n, fn, script, stdout, stderr):
@@ -80,12 +86,12 @@ class Commands:
         tail.stdout.close()
         return tail, sed
 
-
+#-----------------------------------------------------------------------------
 class BaseHandler(web.RequestHandler):
     def __init__(self, *args, **kw):
         super(BaseHandler, self).__init__(*args, **kw)
         self.config = self.application.config
-        self.cconfig = self.application.cconfig
+        self.client_config = self.application.client_config
 
 class Index(BaseHandler):
     def get(self):
@@ -96,7 +102,7 @@ class Index(BaseHandler):
             'files': Files.statfiles(files),
             'commands': self.config['commands'],
             'root': root,
-            'client_config': json_encode(self.cconfig),
+            'client_config': json_encode(self.client_config),
         }
 
         self.render('index.html', **ctx)
@@ -252,19 +258,20 @@ class WebsocketCommands(SockJSConnection):
     def wjson(self, data):
         return self.send(json_encode(data))
 
+#-----------------------------------------------------------------------------
 class Application(web.Application):
     here = dirname(__file__)
 
-    def __init__(self, config, cconfig={}, template_dir=None, assets_dir=None):
+    def __init__(self, config, client_config={}, template_dir=None, assets_dir=None):
         prefix = config['relative-root']
         wsroutes = SockJSRouter(WebsocketCommands, pjoin('/', prefix, 'ws'))
         WebsocketCommands.application = self
 
         routes = [
-          [r'/assets/(.*)', web.StaticFileHandler, {'path': pjoin(self.here, '../assets/')}],
-          [r'/files', Files],
-          [r'/fetch/(.*)', Fetch],
-          [r'/', Index],
+            [r'/assets/(.*)', web.StaticFileHandler, {'path': pjoin(self.here, '../assets/')}],
+            [r'/files', Files],
+            [r'/fetch/(.*)', Fetch],
+            [r'/', Index],
         ]
 
         # tornado is specific about routes being a list of tuples
@@ -277,18 +284,21 @@ class Application(web.Application):
         # import pprint
         # log.debug('routes:\n%s', pprint.pformat(routes))
 
-        if not template_dir: pjoin(self.here, '../templates')
-        if not assets_dir:   pjoin(self.here, '../assets')
+        if not template_dir:
+            pjoin(self.here, '../templates')
+
+        if not assets_dir:
+            pjoin(self.here, '../assets')
 
         log.debug('template dir: %s', template_dir)
         log.debug('static dir: %s', assets_dir)
 
         settings = {
-          'static_path': assets_dir,
-          'template_path': template_dir,
-          'debug': config['debug'],
+            'static_path': assets_dir,
+            'template_path': template_dir,
+            'debug': config['debug'],
         }
 
         super(Application, self).__init__(routes, **settings)
         self.config = config
-        self.cconfig = cconfig
+        self.client_config = client_config

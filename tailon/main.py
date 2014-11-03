@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8; -*-
+
+from __future__ import print_function
+from __future__ import absolute_import
 
 import os, sys
 import glob
@@ -9,12 +13,14 @@ import collections
 import pkg_resources
 
 from tornado import ioloop, httpserver
-from tailon import argparse
-from tailon.server import Application, Commands
-from tailon import version
+
+from . import argparse, version
+from . server import Application, Commands
 
 
-# setup logging
+#-----------------------------------------------------------------------------
+# Setup Logging
+#-----------------------------------------------------------------------------
 log = logging.getLogger('logtail')
 ch = logging.StreamHandler()
 ft = logging.Formatter('[+%(relativeCreated)f][%(levelname)5s] %(message)s')
@@ -38,7 +44,7 @@ applog.addHandler(ch)
 applog.setLevel(logging.WARN)
 applog.propagate = 0
 
-
+#-----------------------------------------------------------------------------
 def parseaddr(arg):
     tmp = arg.split(':')
     port = int(tmp[-1])
@@ -85,6 +91,7 @@ def parseconfig(cfg):
     helper(raw_config['files'])
     return config
 
+#-----------------------------------------------------------------------------
 def parseopts(args=None):
     description = '''
     Tailon is a web app for looking at and searching through log files.
@@ -104,23 +111,30 @@ def parseopts(args=None):
         - 'cron':             # it's possible to add sub-sections
             - '/var/log/cron*'
 
-    Example command-lines:
+    Example command-line:
       tailon -f /var/log/messages /var/log/debug -m tail
       tailon -f '/var/log/cron*' -a -b localhost:8080
       tailon -c config.yaml -d
     '''
 
-    p = argparse.ArgumentParser(formatter_class=CompactHelpFormatter,
-                                description=textwrap.dedent(description),
-                                epilog=textwrap.dedent(epilog),
-                                add_help=False)
+    parser = argparse.ArgumentParser(
+        formatter_class=CompactHelpFormatter,
+        description=textwrap.dedent(description),
+        epilog=textwrap.dedent(epilog),
+        add_help=False
+    )
 
-    group = p.add_argument_group('Required arguments')
+    #-------------------------------------------------------------------------
+    group = parser.add_argument_group('Required arguments')
     arg = group.add_argument
-    arg('-c', '--config', type=argparse.FileType('r'), metavar='path', help='yaml config file')
-    arg('-f', '--files', metavar='path', nargs='+', help='list of files or file wildcards to expose')
+    arg('-c', '--config', type=argparse.FileType('r'),
+        metavar='path', help='yaml config file')
 
-    group = p.add_argument_group('Optional arguments')
+    arg('-f', '--files', nargs='+', metavar='path',
+        help='list of files or file wildcards to expose')
+
+    #-------------------------------------------------------------------------
+    group == parser.add_argument_group('Optional arguments')
     arg = group.add_argument
     arg('-h', '--help', action='help', help='show this help message and exit')
     arg('-d', '--debug', action='store_true', help='show debug messages')
@@ -128,43 +142,49 @@ def parseopts(args=None):
     arg('-b', '--bind', metavar='addr:port', help='listen on the specified address and port')
     arg('-r', '--relative-root', metavar='path', default='', help='web app root path')
     arg('-a', '--allow-transfers', action='store_true', help='allow log file downloads')
-    arg('-m', '--commands', nargs='*', choices=Commands.names, metavar='cmd',
-        default=['tail', 'grep', 'awk'], help='allowed commands (default: tail grep awk)')
 
-    return p, p.parse_args(args)
+    arg('-m', '--commands', nargs='*', metavar='cmd',
+        choices=Commands.names, default=['tail', 'grep', 'awk'],
+        help='allowed commands (default: tail grep awk)')
 
-def main_config(opts):
+    return parser, parser.parse_args(args)
+
+#-----------------------------------------------------------------------------
+def setup(opts):
     if opts.config:
         config = parseconfig(opts.config)
-    else:
-        port, addr = parseaddr(opts.bind if opts.bind else 'localhost:8080')
-        config = {
-            'port': port,
-            'addr': addr,
-            'files': {'__ungrouped__':[]},
-            'commands': opts.commands,
-            'allow-transfers': opts.allow_transfers,
-            'relative-root': opts.__dict__.get('relative_root', ''),
-            'debug': opts.__dict__.get('debug', False),
-        }
+        return config
 
-        for fn in opts.files:
-            for fn in glob.glob(fn):
-                if not os.access(fn, os.R_OK):
-                    log.info('skipping unreadable file: %s', fn)
-                    continue
-                if fn.startswith('./'):
-                    fn = fn.lstrip('./')
-                config['files']['__ungrouped__'].append(fn)
+    port, addr = parseaddr(opts.bind if opts.bind else 'localhost:8080')
+    config = {
+        'port': port,
+        'addr': addr,
+        'files': {'__ungrouped__': []},
+        'commands': opts.commands,
+        'allow-transfers': opts.allow_transfers,
+        'relative-root': opts.__dict__.get('relative_root', ''),
+        'debug': opts.__dict__.get('debug', False),
+    }
+
+    for fn in opts.files:
+        for fn in glob.glob(fn):
+            if not os.access(fn, os.R_OK):
+                log.warn('skipping unreadable file: %s', fn)
+                continue
+            if fn.startswith('./'):
+                fn = fn.lstrip('./')
+            config['files']['__ungrouped__'].append(fn)
 
     return config
 
+#-----------------------------------------------------------------------------
 def main(argv=sys.argv):
     parser, opts = parseopts()
 
     if not opts.config and not opts.files:
         parser.print_help()
-        print('\nError: must specify files on the command line or through a config file')
+        msg = 'Error: must specify file list on the command line or through the config file.'
+        print('\n%s' % msg, file=sys.stderr)
         sys.exit(1)
 
     if opts.debug:
@@ -178,25 +198,21 @@ def main(argv=sys.argv):
     except ImportError:
         template_dir, assets_dir = None, None
 
-    config = main_config(opts)
+    config = setup(opts)
 
     application = Application(config, {}, template_dir, assets_dir)
     server = httpserver.HTTPServer(application)
     server.listen(config['port'], config['addr'])
 
-    lines = []
-    for group, files in config['files'].items():
-        group = group if group != '__ungrouped__' else 'ungrouped'
-        lines.append('%s:' % group)
-        for fn in files: lines.append(fn)
     log.debug('Config:\n%s', pprint.pformat(config))
-    log.debug('Files:\n%s', '\n - '.join(lines))
+    log.debug('Files:\n%s',  pprint.pformat(dict(config['files'])))
 
     loop = ioloop.IOLoop.instance()
     msg = 'Listening on %s:%s' % (config['addr'], config['port'])
     loop.add_callback(log.info, msg)
     loop.start()
 
+#-----------------------------------------------------------------------------
 class CompactHelpFormatter(argparse.RawTextHelpFormatter):
     def __init__(self, *args, **kw):
         super(CompactHelpFormatter, self).__init__(*args, max_help_position=35, **kw)

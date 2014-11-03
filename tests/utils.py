@@ -1,11 +1,18 @@
+#!/usr/bin/env python
+# -*- coding: utf-8; -*-
+
+'''A simple logfile simulator.'''
+
 import os
 
-from time import time, sleep
+from time import sleep
 from random import choice, randint
 from datetime import datetime as dt
 from threading import Thread, Lock
 from functools import partial
 
+
+#-----------------------------------------------------------------------------
 agents = (
     'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31',
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_3) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.65 Safari/537.31',
@@ -39,6 +46,7 @@ methods = 'POST', 'GET', 'HEAD'
 codes = 304, 404, 300, 400, 200
 logfmt = '[{now:%d/%b/%Y:%H:%M:%S %z}] "{method} {path} HTTP/1.1" {status} 0 "{agent}"\n'
 
+
 def generate_logtext():
     while True:
         yield logfmt.format(
@@ -47,11 +55,11 @@ def generate_logtext():
             path=choice(paths),
             status=choice(codes),
             agent=choice(agents),
-            )
+        )
 
 
 class LogFile:
-    def __init__(self, fn, mode='w', rate=(1,4), update_msec=(500,1000), truncate_msec=10000):
+    def __init__(self, fn, mode='w', rate=(1, 4), update_msec=(500, 1000), truncate_msec=10000):
         self.update_msec = update_msec
         self.truncate_msec = truncate_msec
         self.rate = rate
@@ -86,8 +94,8 @@ class LogFile:
     def run(self, cb, interval):
         while self.running:
             cb()
-            interval = randint(*interval) if isinstance(interval, (tuple, list)) else interval 
-            sleep(interval/1000.)
+            interval = randint(*interval) if isinstance(interval, (tuple, list)) else interval
+            sleep(interval / 1000.)
 
     def write(self):
         n = self.rate
