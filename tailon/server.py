@@ -276,8 +276,8 @@ class Application(web.Application):
         WebsocketCommands.application = self
 
         routes = [
-            [r'/assets/(.*)', web.StaticFileHandler, {'path': pjoin(self.here, '../assets/')}],
-            [r'/files', Files],  # TODO: Currently not used.
+            [r'/assets/(.*)', web.StaticFileHandler, {'path': pjoin(self.here, 'assets/')}],
+            [r'/files', Files],  # TODO: Not used.
             [r'/fetch/(.*)', Fetch],
             [r'/', Index],
         ]
@@ -293,10 +293,10 @@ class Application(web.Application):
         # log.debug('routes:\n%s', pprint.pformat(routes))
 
         if not template_dir:
-            pjoin(self.here, '../templates')
+            pjoin(self.here, 'tailon/templates')
 
         if not assets_dir:
-            pjoin(self.here, '../assets')
+            pjoin(self.here, 'talon/assets')
 
         log.debug('template dir: %s', template_dir)
         log.debug('static dir: %s', assets_dir)

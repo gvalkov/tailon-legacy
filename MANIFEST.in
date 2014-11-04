@@ -1,10 +1,7 @@
 # make github and sdist happy
 include README.rst
 include LICENSE
-include assets/js/*
-include assets/js/vendor/*
-include assets/css/*
-include assets/favicon.ico
-include assets/fonts/*
-include templates/*
-prune assets/scss
+recursive-include tailon/assets *
+recursive-include tailon/templates *
+prune tailon/assets/scss
+prune tailon/assets/.sass-cache
