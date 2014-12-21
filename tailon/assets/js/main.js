@@ -22,7 +22,7 @@ function formatBytes(size) {
 function formatFilename(state) {
   if (!state.id) return state.text;
   var size = formatBytes($(state.element).data('size'));
-  return '<span>'+state.text+'</span>' + '<span style="float:right;">'+size+'</span>';
+  return '<div class="select2-filename-wrap"><div class="select2-filename-text">' + state.text + '</div><div class="select2-filename-size">' + size + '</div></div>';
 }
 
 function endsWith(str, suffix) {
