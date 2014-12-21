@@ -39,7 +39,7 @@ class Commands:
         return p
 
     def grep(self, regex, fn, stdout, stderr, **kw):
-        cmd = [self.grepexe, '--line-buffered', '--color=never', '-e', regex]
+        cmd = [self.grepexe, '--text', '--line-buffered', '--color=never', '-e', regex]
         if fn:
             cmd.append(fn)
         p = Subprocess(cmd, stdout=stdout, stderr=stderr, **kw)
