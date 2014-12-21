@@ -224,6 +224,19 @@ body {
       background: #373b41;
       border-left: 0; }
 
+.select2-results .select2-filename-wrap {
+  display: table;
+  width: 100%;
+}
+  .select2-results .select2-filename-size {
+    display: table-cell;
+    text-align: right;
+  }
+  .select2-results .select2-filename-text {
+    display: table-cell;
+    padding-right: 20px;
+  }
+
 /* log view style */
 .scrollable {
   overflow-y: auto; }
