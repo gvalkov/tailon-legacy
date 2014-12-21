@@ -49,7 +49,7 @@ function isInputFocused() {
 }
 
 function resizeLogview() {
-  var toolbarHeight = (uimodel.get('pannel-hidden') ? 0 : $('.toolbar').height()); // todo
+  var toolbarHeight = (uimodel.get('pannel-hidden') ? 0 : $('.toolbar').outerHeight(true)); // todo
   logviewer.container.height(window.innerHeight - toolbarHeight);
 }
 
