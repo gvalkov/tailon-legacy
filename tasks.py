@@ -47,3 +47,7 @@ def logsim_stop():
 def logsim():
     files = ' '.join(str(i) for i in LOGSIM_FILES)
     sub.check_call('python -m tailon.main  -d -a -f {}'.format(files), shell=True)
+
+@task
+def test():
+    run('py.test -sv tests', pty=True)
