@@ -1,5 +1,4 @@
 logs
-.makepid
 doc/_build
 
 *.py[cod]
