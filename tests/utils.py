@@ -6,8 +6,8 @@
 import signal
 import os, sys
 
-from time import sleep
-from random import choice, randint
+from time import sleep, time
+from random import choice, randint, seed
 from datetime import datetime as dt
 from threading import Thread, Lock
 from functools import partial
@@ -154,11 +154,15 @@ if __name__ == '__main__':
     o('--rate',          default=1, type=t_or_i)
     o('--daemon',        action='store_true')
     o('--pid',           default='/tmp/python-tailon-logsim.pid')
+    o('--seed',          default=str(time()))
     o('action',          choices=['start', 'stop'])
     o('files',           nargs=argparse.REMAINDER)
 
     opts = p.parse_args()
     opts.files = [os.path.abspath(fn) for fn in opts.files]
+
+    print('using random seed: %s' % opts.seed)
+    seed(opts.seed)
 
     def run():
         try:
