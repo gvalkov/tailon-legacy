@@ -3,7 +3,8 @@
 
 '''A simple logfile simulator.'''
 
-import os
+import signal
+import os, sys
 
 from time import sleep
 from random import choice, randint
@@ -70,16 +71,20 @@ class LogFile:
 
         self.write_t = Thread()
         self.write_t.run = partial(self.run, self.write, update_msec)
+
         self.truncate_t = Thread()
         self.truncate_t.run = partial(self.run, self.truncate, truncate_msec)
 
         self.threads = (self.write_t, self.truncate_t)
         self.running = True
 
-    def start(self):
-        msg = 'simulating "%s", write %smsec, truncate %smsec'
+        self.write_t.daemon = True
+        self.truncate_t.daemon = True
+
+        msg = 'writing to "%s" every %s msec, truncating every %s msec'
         print(msg % (self.fh.name, self.update_msec, self.truncate_msec))
 
+    def start(self):
         self.write_t.start()
         if self.truncate_msec:
             self.truncate_t.start()
@@ -123,6 +128,10 @@ class LogFiles:
 
         self.logfiles = [LogFile(fn, 'w', rate, update_msec, truncate_msec) for fn in files]
 
+    def join(self):
+        for i in self.logfiles:
+            i.join()
+
     def start(self):
         for i in self.logfiles:
             i.start()
@@ -134,18 +143,39 @@ class LogFiles:
 
 if __name__ == '__main__':
     import argparse
+    import daemonize
 
     t_or_i = lambda s: [int(i) for i in s.split(',')] if ',' in s else int(s)
 
     p = argparse.ArgumentParser()
-    p.add_argument('--update-msec', default=1000, type=t_or_i)
-    p.add_argument('--truncate-msec', default=10000, type=t_or_i)
-    p.add_argument('--rate', default=1, type=t_or_i)
-    p.add_argument('mode', choices=('log',))
-    p.add_argument('action', choices=('start', 'stop'))
-    p.add_argument('files', nargs=argparse.REMAINDER)
+    o = p.add_argument
+    o('--update-msec',   default=1000,  type=t_or_i)
+    o('--truncate-msec', default=10000, type=t_or_i)
+    o('--rate',          default=1, type=t_or_i)
+    o('--daemon',        action='store_true')
+    o('--pid',           default='/tmp/python-tailon-logsim.pid')
+    o('action',          choices=['start', 'stop'])
+    o('files',           nargs=argparse.REMAINDER)
 
     opts = p.parse_args()
-    if opts.mode == 'log' and opts.action == 'start':
-        l = LogFiles(opts.files, opts.rate, opts.update_msec, opts.truncate_msec)
-        l.start()
+    opts.files = [os.path.abspath(fn) for fn in opts.files]
+
+    def run():
+        try:
+            lf = LogFiles(opts.files, opts.rate, opts.update_msec, opts.truncate_msec)
+            lf.start()
+            lf.join()
+        except KeyboardInterrupt:
+            lf.stop()
+
+    if opts.daemon:
+        if opts.action == 'start':
+            daemon = daemonize.Daemonize(app='tailon-logsim', pid=opts.pid, action=run)
+            daemon.start()
+        elif opts.action == 'stop':
+            if os.path.exists(opts.pid):
+                pid = open(opts.pid).read().strip()
+                os.kill(int(pid), signal.SIGTERM)
+
+    elif opts.action == 'start':
+        run()

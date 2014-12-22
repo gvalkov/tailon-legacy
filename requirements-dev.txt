@@ -1,4 +1,4 @@
 Sphinx >= 1.2.3
 sphinxcontrib-images >= 0.4.1
 alabaster >= 0.6.1
-
+daemonize >= 2.3.1
