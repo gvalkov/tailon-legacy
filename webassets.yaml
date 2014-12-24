@@ -1,0 +1,56 @@
+directory: tailon/assets
+url: assets/
+versions: false
+url_expire: false
+debug: true
+config:
+    debug_info: false
+
+bundles:
+  external-js:
+    filters: jsmin
+    output: gen/3rdparty.js
+    contents:
+      - vendor/jquery/dist/jquery.js
+      - vendor/underscore/underscore.js
+      - vendor/microplugin/src/microplugin.js
+      - vendor/sifter/sifter.js
+      - vendor/selectize/dist/js/selectize.js
+      - vendor/moment/moment.js
+      - vendor/backbone/backbone.js
+      - vendor/sockjs-client/dist/sockjs.js
+      - vendor/jquery-cookie/jquery.cookie.js
+      - vendor/html5shiv/dist/html5shiv.js
+      - vendor/jwerty/jwerty.js
+
+  external-css:
+    filters: cssmin
+    output: gen/3rdparty.css
+    contents:
+      - vendor/fontawesome/css/font-awesome.css
+      - vendor/normalize-css/normalize.css
+
+  selectize-css:
+    filters: pyscss,cssmin
+    output: gen/selectize.css
+    depends:
+      - scss/vars.scss
+      - scss/selectize.scss
+    contents:
+      - scss/selectize.default.scss
+
+  internal-js:
+    filters: jsmin
+    output: gen/main.js
+    contents:
+      - main.js
+
+  internal-css:
+    filters: pyscss,cssmin
+    output:  gen/main.css
+    depends:
+      - scss/vars.scss
+      - scss/base.scss
+      - scss/utils.scss
+    contents:
+      - scss/main.scss

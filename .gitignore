@@ -1,6 +1,11 @@
 logs
 doc/_build
 
+# Webassets
+.webassets-cache
+bower_components
+webassets-external
+
 *.py[cod]
 TAGS
 .sass-cache
@@ -41,3 +46,5 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+\#*\#
