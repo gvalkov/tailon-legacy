@@ -1,6 +1,6 @@
 directory: tailon/assets
 url: assets/
-versions: false
+versions: hash
 url_expire: false
 debug: true
 config:

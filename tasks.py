@@ -70,26 +70,38 @@ def list_bowerfiles():
 def collectstatic():
     # Copy bower main files to the vendor dir.
     for source in bowerfiles():
-        dest = Path('tailon/assets/vendor', *source.parts[1:])
+        dest = Path(ASSETDIR/'vendor', *source.parts[1:])
         run('install -vD {} {}'.format(source, dest))
 
 @task
-def webassets(debug=False, replace=False):
+def cleanstatic():
+    dirs = ['gen', 'fonts']
+    paths = [Path(ASSETDIR/i).glob('*') for i in dirs]
+    for path in (j for i in paths for j in i):
+        if path.name.startswith('.'):
+            continue
+        print('unkink: %s' % path)
+        path.unlink()
+
+@task
+def webassets(debug=False, expire=True, replace=False):
     #--------------------------------------------------------------------------
     # Copy fonts to webassets dir.
     print('* Copying fonts to %s' % ASSETDIR)
     fonts = [
-        'assets/vendor/fontawesome/fonts/FontAwesome.otf',
-        'assets/vendor/fontawesome/fonts/fontawesome-webfont.eot',
-        'assets/vendor/fontawesome/fonts/fontawesome-webfont.svg',
-        'assets/vendor/fontawesome/fonts/fontawesome-webfont.ttf',
-        'assets/vendor/fontawesome/fonts/fontawesome-webfont.woff',
+        'tailon/assets/vendor/fontawesome/fonts/FontAwesome.otf',
+        'tailon/assets/vendor/fontawesome/fonts/fontawesome-webfont.eot',
+        'tailon/assets/vendor/fontawesome/fonts/fontawesome-webfont.svg',
+        'tailon/assets/vendor/fontawesome/fonts/fontawesome-webfont.ttf',
+        'tailon/assets/vendor/fontawesome/fonts/fontawesome-webfont.woff',
     ]
     run('rsync -v {} {}'.format(' '.join(fonts), Path(ASSETDIR)/'fonts'))
 
     #--------------------------------------------------------------------------
     # Load webassets environemtn
     env = YAMLLoader('./webassets.yaml').load_environment()
+    env.debug = debug
+    env.url_expire = expire
 
     #--------------------------------------------------------------------------
     # Generate css/js urls.
