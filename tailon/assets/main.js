@@ -89,17 +89,12 @@ var ModeSelectView = Backbone.View.extend({
     'change': 'modechange'
   },
 
-  modechange: function (change) {
-    this.model.set({'mode': change.val, 'script': null});
+  modechange: function(event) {
+    this.model.set({'mode': event.target.value, 'script': null});
   },
 
   render: function() {
-    this.$el.select2({
-      width: 'element',
-      allowClear: true,
-      containerCssClass: 'select-container',
-      dropdownCssClass: 'select-dropdown-container'
-    });
+    this.$el.selectize();
     return this;
   }
 });
@@ -114,19 +109,14 @@ var FileSelectView = Backbone.View.extend({
     'change': 'filechange'
   },
 
-  filechange: function(change) {
-    this.model.set({'file': change.val});
+  filechange: function(event) {
+    this.model.set({'file': event.target.value});
   },
 
   render: function() {
-    this.$el.select2({
-      width: 'element',
-      placeholder: 'select file',
-      allowClear: true,
-      formatResult: formatFilename,
-      containerCssClass: 'select-container',
-      dropdownCssClass: 'select-dropdown-container',
-      dropdownAutoWidth: true
+    this.$el.selectize({
+      highlight: false,
+      selectOnTab: true
     });
     return this;
   }
@@ -424,8 +414,8 @@ socket.onmessage = onMessage;
 window.cmdmodel = new CommandModel();
 window.uimodel = new UiModel();
 
-window.fileselectview = new FileSelectView({model: cmdmodel, el: '#logselect'});
-window.modeselectview = new ModeSelectView({model: cmdmodel, el: '#modeselect'});
+window.fileselectview = new FileSelectView({model: cmdmodel, el: '#logselect  > select'});
+window.modeselectview = new ModeSelectView({model: cmdmodel, el: '#modeselect > select'});
 window.scriptview = new ScriptView({model: cmdmodel, el: '#scriptinput input'});
 window.actionsview = new ActionsView({model: uimodel, el: '.quickbar .button-group'});
 window.buttonsview = new PanelView({model: uimodel, cmdmodel: cmdmodel, el: '.toolbar'});
@@ -436,14 +426,6 @@ $(window).resize(resizeLogview);
 cmdmodel.on('change', function(model) {
   wscommand(model);
 });
-
-
-//----------------------------------------------------------------------------
-// visual effects
-$('.select2-choice').hover(
-  function () {$(this).find('.select2-arrow').addClass('hovered');},
-  function () {$(this).find('.select2-arrow').removeClass('hovered');}
-);
 
 
 //----------------------------------------------------------------------------

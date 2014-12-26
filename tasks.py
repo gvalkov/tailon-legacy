@@ -93,8 +93,8 @@ def webassets(debug=False, replace=False):
 
     #--------------------------------------------------------------------------
     # Generate css/js urls.
-    css_urls = (env['external-css'].urls(), env['internal-css'].urls())
-    css_urls = [url_to_link(url) for urls in css_urls for url in urls]
+    css_urls = [env['external-css'],  env['selectize-css'], env['internal-css']]
+    css_urls = [url_to_link(url) for urls in css_urls for url in urls.urls()]
 
     js_urls = [env['external-js'].urls(), env['internal-js'].urls()]
     js_urls = [url_to_script(url) for urls in js_urls for url in urls]

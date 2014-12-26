@@ -29,8 +29,8 @@
   </div>
 
   <div class='toolbar'>
-    <div class='toolbar-item'>
-      <select id='logselect' tabindex='1'>
+    <div class='toolbar-item' id='logselect'>
+      <select tabindex='1'>
         <option data-size='1' data-mtime='1' value=''></option>
         {# ----------------------------------- #}
         {% if files.keys() == {'__ungrouped__'} %}
@@ -51,8 +51,8 @@
       </select>
     </div>
 
-    <div class='toolbar-item'>
-      <select id='modeselect' tabindex='2'>
+    <div class='toolbar-item' id='modeselect'>
+      <select tabindex='2'>
         {% for cmd in commands %}
         <option value='{{cmd}}'>{{cmd.capitalize()}}</option>
         {% end %}

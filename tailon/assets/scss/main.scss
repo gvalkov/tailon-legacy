@@ -1,14 +1,17 @@
 @import 'vars.scss';
+@import 'utils.scss';
 @import 'base.scss';
 
 body {
-  background-color: #1d1f21;
+  background-color: red;
 }
 
-/* toolbar styles */
+//----------------------------------------------------------------------------
+// Toolbar styles.
+//----------------------------------------------------------------------------
 .toolbar {
   width: 100%;
-  background: #282a2e;
+  background: $tailon-toolbar-background-color;
   padding: 5px;
 
   -webkit-box-direction: normal;
@@ -42,21 +45,21 @@ body {
   @include flex(1, 0, auto);
 }
 
-#logselect {
-  min-width: 300px;
+div#logselect {
+  min-width: 20%;
 }
 
-#modeselect {
+div#modeselect {
   min-width: 80px;
 }
 
 #scriptinput {
   @include box-sizing(border-box);
-  @include box-shadow(2px, 2px, 2px, 0px, darken(#373b41, 10%));
+  @include box-shadow(2px, 2px, 2px, 0px, darken($tailon-toolbar-input-background-color, 10%));
 
   height: 26px;
 
-  background: #373b41;
+  background: $tailon-toolbar-input-background-color;
   padding-right: 30px;
   position: relative;
 
@@ -92,14 +95,14 @@ body {
 
 .toolbar-widget {
   color: #c5c8c6;
-  background: #373b41;
+  background: $tailon-toolbar-input-background-color;
   border: 0;
   border-radius: 0;
   @include box-sizing(border-box);
 }
 
 .toolbar-hover {
-  background-color: lighten(#373b41, 5%);
+  background-color: lighten($tailon-toolbar-input-background-color, 5%);
 }
 
 .toolbar-text {
@@ -111,7 +114,7 @@ body {
   height: 26px;
 
   a {
-    @include box-shadow(2px, 2px, 2px, 0px, darken(#373b41, 10%));
+    @include box-shadow(2px, 2px, 2px, 0px, darken($tailon-toolbar-input-background-color, 10%));
     @extend .toolbar-widget;
 
     float: left;
@@ -147,59 +150,19 @@ body {
   text-align: center;
 }
 
-@mixin selected-placeholder($color: #373b41) {
+@mixin selected-placeholder($color: $tailon-toolbar-input-background-color) {
   background: $color;
   text-shadow: none;
 }
 
-.select-dropdown-container {
-  border: 0;
-  border-radius: 0;
-  font-family: $ttfonts;
-  font-size: smaller;
-  color: #c5c8c6;
-  background: #373b41;
-
-}
+/* .select-container { */
+/*   @include box-shadow(2px, 2px, 2px, 0px, darken(#373b41, 10%)); */
+/* } */
 
 
-.select-container {
-  @extend .toolbar-text;
-  @include box-shadow(2px, 2px, 2px, 0px, darken(#373b41, 10%));
-
-  border: 0;
-  vertical-align: middle;
-  width: 20%;
-
-  .select2-default {
-    @include input-placeholder();
-  }
-
-  .select2-choice {
-    @extend .toolbar-widget;
-    height: 100%;
-    padding-left: 0;
-
-    span {
-      width: 100%;
-      padding-left: 8px;
-      background: #373b41;
-    }
-
-    .select2-arrow {
-      background: #373b41;
-      border-left: 0;
-
-      &:hover,
-      &.hovered {
-        @extend .toolbar-hover;
-      }
-    }
-  }
-}
-
-
-/* log view style */
+//----------------------------------------------------------------------------
+// Log view style.
+//----------------------------------------------------------------------------
 
 .scrollable {
   overflow-y: auto;
@@ -211,8 +174,8 @@ body {
   font-size: 10px;
   overflow-y: auto;
   line-height: 1.3;
-  color: #c5c8c6;
-  background-color: #1d1f21;
+  color:$tailon-logview-text-color;
+  background-color: $tailon-logview-background-color;
 
   .log-entry {
     display: block;
