@@ -1,0 +1,284 @@
+/* 35 selectors generated from '/home/gv/source/github/tailon/tailon/assets/scss/selectize.scss' add up to a total of 35 selectors accumulated */
+@media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003113}}
+.selectize-control {
+  position: relative; }
+
+  @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003119}}
+  .selectize-dropdown, .selectize-input, .selectize-input input {
+    color: #c5c8c6;
+    font-family: Bitstream Vera Sans Mono, Consolas, Monaco, Lucida Console, Liberation Mono,
+        DejaVu Sans Mono, Courier New, monospace;
+    font-size: smaller;
+    line-height: 24px;
+    -webkit-font-smoothing: inherit; }
+
+    @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003128}}
+    .selectize-input, .selectize-control.single .selectize-input.input-active {
+      background: #fff;
+      cursor: text;
+      display: inline-block; }
+
+      @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003134}}
+      .selectize-input {
+        border: 0;
+        padding: 0 8px;
+        display: inline-block;
+        width: 100%;
+        overflow: hidden;
+        position: relative;
+        z-index: 1;
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+        -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.1);
+        box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.1);
+        -webkit-border-radius: 0;
+        -moz-border-radius: 0;
+        border-radius: 0; }
+        @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003146}}
+        .selectize-control.multi .selectize-input.has-items {
+          padding: -2px 8px -5px; }
+          @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003153}}
+          .selectize-input.full {
+            background-color: #fff; }
+            @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003156}}
+            .selectize-input.disabled, .selectize-input.disabled * {
+              cursor: default !important; }
+              @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003159}}
+              .selectize-input.focus {
+                -webkit-box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
+                box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15); }
+                @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003162}}
+                .selectize-input.dropdown-active {
+                  -webkit-border-radius: 0 0 0 0;
+                  -moz-border-radius: 0 0 0 0;
+                  border-radius: 0 0 0 0; }
+                  @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003166}}
+                  .selectize-input > * {
+                    vertical-align: baseline;
+                    display: -moz-inline-stack;
+                    display: inline-block;
+                    zoom: 1;
+                    *display: inline; }
+                    @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003173}}
+                    .selectize-control.multi .selectize-input > div {
+                      cursor: pointer;
+                      margin: 0 3px 3px 0;
+                      padding: 2px 6px;
+                      background: #f2f2f2;
+                      color: #c5c8c6;
+                      border: 0 solid #d0d0d0; }
+                      @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003181}}
+                      .selectize-control.multi .selectize-input > div.active {
+                        background: #e8e8e8;
+                        color: #c5c8c6;
+                        border: 0 solid #cacaca; }
+        @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003188}}
+        .selectize-control.multi .selectize-input.disabled > div,
+        .selectize-control.multi .selectize-input.disabled > div.active {
+          color: white;
+          background: white;
+          border: 0 solid white; }
+        @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003194}}
+        .selectize-input > input {
+          display: inline-block !important;
+          padding: 0 !important;
+          min-height: 0 !important;
+          max-height: none !important;
+          max-width: 100% !important;
+          margin: 0 2px 0 0 !important;
+          text-indent: 0 !important;
+          border: 0 none !important;
+          background: none !important;
+          line-height: inherit !important;
+          -webkit-user-select: auto !important;
+          -moz-user-select: auto !important;
+          -ms-user-select: auto !important;
+          user-select: auto !important;
+          -webkit-box-shadow: none !important;
+          box-shadow: none !important; }
+          @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003195}}
+          .selectize-input > input::-ms-clear {
+            display: none; }
+            @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003211}}
+            .selectize-input > input:focus {
+              outline: none !important; }
+
+@media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003217}}
+.selectize-input:after {
+  content: ' ';
+  display: block;
+  clear: left; }
+
+  @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003223}}
+  .selectize-input.dropdown-active:before {
+    content: ' ';
+    display: block;
+    position: absolute;
+    background: #f0f0f0;
+    height: 1px;
+    bottom: 0;
+    left: 0;
+    right: 0; }
+
+    @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003234}}
+    .selectize-dropdown {
+      position: absolute;
+      z-index: 10;
+      border: 0;
+      background: #373b41;
+      margin: -1px 0 0 0;
+      border-top: 0 none;
+      -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      box-sizing: border-box;
+      -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      -webkit-border-radius: 0 0 0 0;
+      -moz-border-radius: 0 0 0 0;
+      border-radius: 0 0 0 0; }
+      @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003245}}
+      .selectize-dropdown [data-selectable] {
+        cursor: pointer;
+        overflow: hidden; }
+        @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003248}}
+        .selectize-dropdown [data-selectable] .highlight {
+          background: rgba(125, 168, 208, 0.2);
+          -webkit-border-radius: 1px;
+          -moz-border-radius: 1px;
+          border-radius: 1px; }
+      @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003253}}
+      .selectize-dropdown [data-selectable], .selectize-dropdown .optgroup-header {
+        padding: 5px 8px; }
+        @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003256}}
+        .selectize-dropdown .optgroup:first-child .optgroup-header {
+          border-top: 0 none; }
+          @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003259}}
+          .selectize-dropdown .optgroup-header {
+            color: #c5c8c6;
+            background: #373b41;
+            cursor: default; }
+            @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003264}}
+            .selectize-dropdown .active {
+              background-color: #43484f;
+              color: #c5c8c6; }
+              @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003267}}
+              .selectize-dropdown .active.create {
+                color: #c5c8c6; }
+      @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003271}}
+      .selectize-dropdown .create {
+        color: rgba(197, 200, 198, 0.5); }
+
+@media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003276}}
+.selectize-dropdown-content {
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 200px; }
+
+  @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003283}}
+  .selectize-control.single .selectize-input,
+  .selectize-control.single .selectize-input input {
+    cursor: pointer; }
+    @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003284}}
+    .selectize-control.single .selectize-input.input-active,
+    .selectize-control.single .selectize-input.input-active input {
+      cursor: text; }
+      @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003286}}
+      .selectize-control.single .selectize-input:after {
+        content: ' ';
+        display: block;
+        position: absolute;
+        top: 50%;
+        right: 15px;
+        margin-top: -2px;
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 5px 5px 0 5px;
+        border-color: #808080 transparent transparent transparent; }
+        @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003299}}
+        .selectize-control.single .selectize-input.dropdown-active:after {
+          margin-top: -4px;
+          border-width: 0 5px 5px 5px;
+          border-color: transparent transparent #808080 transparent; }
+
+@media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003307}}
+.selectize-control.rtl.single .selectize-input:after {
+  left: 15px;
+  right: auto; }
+  @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003311}}
+  .selectize-control.rtl .selectize-input > input {
+    margin: 0 4px 0 -2px !important; }
+
+@media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.scss}line{font-family:\00003316}}
+.selectize-control .selectize-input.disabled {
+  opacity: 0.5;
+  background-color: #fafafa; }
+/* 11 selectors generated from '/home/gv/source/github/tailon/tailon/assets/scss/selectize.default.scss' add up to a total of 46 selectors accumulated */
+@media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.default\.scss}line{font-family:\0000335}}
+.selectize-control.multi .selectize-input.has-items {
+  padding-left: 5px;
+  padding-right: 5px; }
+  @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.default\.scss}line{font-family:\0000341}}
+  .selectize-control.multi .selectize-input.disabled [data-value] {
+    color: #999;
+    text-shadow: none;
+    background: none;
+    -webkit-box-shadow: none;
+    box-shadow: none; }
+    @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.default\.scss}line{font-family:\0000348}}
+    .selectize-control.multi .selectize-input.disabled [data-value],
+    .selectize-control.multi .selectize-input.disabled [data-value] .remove {
+      border-color: #e6e6e6; }
+      @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.default\.scss}line{font-family:\0000352}}
+      .selectize-control.multi .selectize-input.disabled [data-value] .remove {
+        background: none; }
+@media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.default\.scss}line{font-family:\0000357}}
+.selectize-control.multi .selectize-input [data-value] {
+  text-shadow: 0 1px 0 rgba(0, 51, 83, 0.3);
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+  background-color: #1b9dec;
+  background-image: -moz-linear-gradient(top, #1da7ee, #178ee9);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#1da7ee), to(#178ee9));
+  background-image: -webkit-linear-gradient(top, #1da7ee, #178ee9);
+  background-image: -o-linear-gradient(top, #1da7ee, #178ee9);
+  background-image: linear-gradient(to bottom, #1da7ee, #178ee9);
+  background-repeat: repeat-x;
+  filter: progid:DXImageTransform.Microsoft.gradient(
+startColorstr='#1da7ee',
+    endColorstr='#178ee9', GradientType=0);
+  -webkit-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), inset 0 1px rgba(255, 255, 255, 0.03);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), inset 0 1px rgba(255, 255, 255, 0.03); }
+  @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.default\.scss}line{font-family:\0000363}}
+  .selectize-control.multi .selectize-input [data-value].active {
+    background-color: #0085d4;
+    background-image: -moz-linear-gradient(top, #008fd8, #0075cf);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#008fd8), to(#0075cf));
+    background-image: -webkit-linear-gradient(top, #008fd8, #0075cf);
+    background-image: -o-linear-gradient(top, #008fd8, #0075cf);
+    background-image: linear-gradient(to bottom, #008fd8, #0075cf);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(
+startColorstr='#008fd8',
+        endColorstr='#0075cf', GradientType=0); }
+@media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.default\.scss}line{font-family:\0000375}}
+.selectize-control.single .selectize-input {
+  background-color: #373b41; }
+
+@media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.default\.scss}line{font-family:\0000386}}
+.selectize-control.single .selectize-input, .selectize-dropdown.single {
+  border-color: #b8b8b8; }
+
+  @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.default\.scss}line{font-family:\0000392}}
+  .selectize-dropdown .optgroup-header {
+    padding-top: 7px;
+    font-weight: bold;
+    font-size: 0.85em; }
+    @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.default\.scss}line{font-family:\0000398}}
+    .selectize-dropdown .optgroup {
+      border-top: 1px solid #f0f0f0; }
+      @media -sass-debug-info{filename{font-family:file\:\/\/\/home\/gv\/source\/github\/tailon\/tailon\/assets\/scss\/selectize\.default\.scss}line{font-family:\00003101}}
+      .selectize-dropdown .optgroup:first-child {
+        border-top: 0 none; }
