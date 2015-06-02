@@ -111,13 +111,15 @@ Usage with nginx
 ----------------
 
 1) Run ``tailon``, binding it to localhost and specifiying a relative
-   root of your liking. For example::
+   root of your liking. For example:
 
 .. code-block:: bash
 
-    tailon -f /var/log/nginx/* -b localhost:8084 -r '/tailon/'
+   $ tailon -f /var/log/nginx/* -b localhost:8084 -r '/tailon/'
 
-2) Add the following location directives to ``nginx.conf``::
+2) Add the following location directives to ``nginx.conf``:
+
+.. code-block:: none
 
     location /tailon/ws {
         proxy_pass http://localhost:8084/tailon/ws;
