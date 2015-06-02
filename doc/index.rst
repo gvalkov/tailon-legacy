@@ -158,20 +158,11 @@ accessing your system, either through the ``system()`` builtin or by
 using input redirection.
 
 
-Todo
-----
+Development
+-----------
 
-  - There are still parts of the UI that haven't been implemented.
-
-  - Fix select2 related styling glitches.
-
-  - Visual/Audible alarms on log activity.
-
-  - Interface themes.
-
-  - Windows support.
-
-  - Investigate the use of seccomp_ on Linux for unsafe commands.
+Please refer to :doc:`this page <development>` if you're interested in
+developing tailon.
 
 
 Similar Projects
@@ -200,5 +191,4 @@ Tailon is released under the terms of the `Revised BSD License`_.
 .. _`log.io`:  http://logio.org/
 .. _this:      http://www.iconfinder.com/icondetails/15150/48/terminal_icon
 .. _sandbox:   http://www.gnu.org/software/gawk/manual/html_node/Options.html#index-g_t_0040code_007b_002dS_007d-option-277
-.. _seccomp:   http://en.wikipedia.org/wiki/Seccomp
 .. _`Revised BSD License`: https://raw.github.com/gvalkov/tailon/master/LICENSE
