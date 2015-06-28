@@ -121,16 +121,16 @@ Usage with nginx
 
 .. code-block:: none
 
-    location /tailon/ws {
-        proxy_pass http://localhost:8084/tailon/ws;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-    }
+   location /tailon/ws {
+       proxy_pass http://localhost:8084/tailon/ws;
+       proxy_http_version 1.1;
+       proxy_set_header Upgrade $http_upgrade;
+       proxy_set_header Connection "upgrade";
+   }
 
-    location /tailon {
-        proxy_pass http://localhost:8084;
-    }
+   location /tailon {
+       proxy_pass http://localhost:8084;
+   }
 
 
 Security
