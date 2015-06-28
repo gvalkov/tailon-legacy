@@ -134,7 +134,7 @@ def parseopts(args=None):
         help='list of files or file wildcards to expose')
 
     #-------------------------------------------------------------------------
-    group == parser.add_argument_group('Optional arguments')
+    group = parser.add_argument_group('Optional arguments')
     arg = group.add_argument
     arg('-h', '--help', action='help', help='show this help message and exit')
     arg('-d', '--debug', action='store_true', help='show debug messages')
