@@ -22,7 +22,7 @@ function formatBytes(size) {
 function formatFilename(state) {
   if (!state.id) return state.text;
   var size = formatBytes($(state.element).data('size'));
-  return '<span>'+state.text+'</span>' + '<span style="float:right;">'+size+'</span>';
+  return '<span>' + state.text + '</span>' + '<span style="float:right;">' + size + '</span>';
 }
 
 function endsWith(str, suffix) {
@@ -114,6 +114,9 @@ var FileSelectView = Backbone.View.extend({
   },
 
   render: function() {
+    var firstOption = this.$el[0].options[0].value;
+    this.model.set({'file': firstOption});
+
     this.$el.selectize({
       highlight: false,
       selectOnTab: true
@@ -315,7 +318,7 @@ function logview(selector) {
 
 
 //----------------------------------------------------------------------------
-// Communication with the server
+// Communication with backend
 //----------------------------------------------------------------------------
 var socket = new SockJS(wsurl);
 
@@ -414,6 +417,10 @@ socket.onmessage = onMessage;
 window.cmdmodel = new CommandModel();
 window.uimodel = new UiModel();
 
+cmdmodel.on('change', function(model) {
+  wscommand(model);
+});
+
 window.fileselectview = new FileSelectView({model: cmdmodel, el: '#logselect  > select'});
 window.modeselectview = new ModeSelectView({model: cmdmodel, el: '#modeselect > select'});
 window.scriptview = new ScriptView({model: cmdmodel, el: '#scriptinput input'});
@@ -423,9 +430,8 @@ window.buttonsview = new PanelView({model: uimodel, cmdmodel: cmdmodel, el: '.to
 resizeLogview();
 $(window).resize(resizeLogview);
 
-cmdmodel.on('change', function(model) {
-  wscommand(model);
-});
+// Select first file in list on load.
+// window.cmdmodel.model.set({'file': event.target.value});
 
 
 //----------------------------------------------------------------------------
