@@ -5,7 +5,7 @@
 // globals
 var logviewer = null;
 var connected = false;
-var socketRetries = 10;
+var socket_retries = 10;
 
 //----------------------------------------------------------------------------
 // utility functions
@@ -30,7 +30,7 @@ function endsWith(str, suffix) {
 }
 
 // escapeHtml from mustache.js
-var escapeEntityMap = {
+var escape_entity_map = {
   "&": "&amp;",
   "<": "&lt;",
   ">": "&gt;",
@@ -39,7 +39,7 @@ var escapeEntityMap = {
 
 function escapeHtml(string) {
   return String(string).replace(/[&<>\/]/g, function (s) {
-    return escapeEntityMap[s];
+    return escape_entity_map[s];
   });
 }
 
@@ -49,8 +49,8 @@ function isInputFocused() {
 }
 
 function resizeLogview() {
-  var toolbarHeight = (uimodel.get('pannel-hidden') ? 0 : $('.toolbar').outerHeight(true)); // todo
-  logviewer.container.height(window.innerHeight - toolbarHeight);
+  var toolbar_height = (uimodel.get('pannel-hidden') ? 0 : $('.toolbar').outerHeight(true)); // todo
+  logviewer.container.height(window.innerHeight - toolbar_height);
 }
 
 //----------------------------------------------------------------------------
@@ -114,8 +114,8 @@ var FileSelectView = Backbone.View.extend({
   },
 
   render: function() {
-    var firstOption = this.$el[0].options[0].value;
-    this.model.set({'file': firstOption});
+    var first_option = this.$el[0].options[0].value;
+    this.model.set({'file': first_option});
 
     this.$el.selectize({
       highlight: false,
@@ -237,13 +237,13 @@ function logview(selector) {
   var self = this
     , fragment = document.createDocumentFragment()
     , container = $(selector)
-    , containerDom = container.get()[0]
-    , autoScroll = true
-    , autoScrollOffset = null
+    , container_dom = container.get()[0]
+    , auto_scroll = true
+    , auto_scroll_offset = null
     , history = []
-    , linesOfHistory = 200  // 0 for infinite history
-    , lastSpan = null
-    , lastSpanClasses = '';
+    , lines_of_history = 200  // 0 for infinite history
+    , last_span = null
+    , last_span_classes = '';
 
   this.container = container;
 
@@ -274,43 +274,43 @@ function logview(selector) {
       fragment.appendChild(span);
     }
 
-    containerDom.appendChild(fragment);
+    container_dom.appendChild(fragment);
     self.scroll();
     self.trimHistory();
     fragment.innerHTML = '';
 
-    if (lastSpan) {
-      lastSpan.className = lastSpanClasses;
+    if (last_span) {
+      last_span.className = last_span_classes;
     }
 
-    lastSpan = history[history.length-1];
-    lastSpanClasses = lastSpan.className;
-    lastSpan.className = lastSpanClasses + ' log-entry-current';
+    last_span = history[history.length-1];
+    last_span_classes = last_span.className;
+    last_span.className = last_span_classes + ' log-entry-current';
   };
 
   this.trimHistory = function() {
-    if (linesOfHistory !== 0 && history.length > linesOfHistory) {
-      for (var i=0; i<(history.length-linesOfHistory); i++) {
-        containerDom.removeChild(history.shift());
+    if (lines_of_history !== 0 && history.length > lines_of_history) {
+      for (var i=0; i<(history.length-lines_of_history); i++) {
+        container_dom.removeChild(history.shift());
       }
     }
   };
 
   this.scroll = function() {
-    if (autoScroll) {
+    if (auto_scroll) {
       // autoscroll only if div is scrolled within 40px of the bottom
-      autoScrollOffset = containerDom.scrollTop-(containerDom.scrollHeight-containerDom.offsetHeight);
-      if (Math.abs(autoScrollOffset) < 40) {
-        containerDom.scrollTop = containerDom.scrollHeight;
+      auto_scroll_offset = container_dom.scrollTop-(container_dom.scrollHeight-container_dom.offsetHeight);
+      if (Math.abs(auto_scroll_offset) < 40) {
+        container_dom.scrollTop = container_dom.scrollHeight;
       }
     }
   };
 
   this.clear = function() {
-    containerDom.innerHTML = '';
+    container_dom.innerHTML = '';
     fragment.innerHTML = '';
     history = [];
-    lastSpan = null;
+    last_span = null;
   };
 
   return self;
@@ -329,12 +329,12 @@ function onOpen() {
 function onClose() {
   connected = false;
 
-  if (socketRetries === 0) {
+  if (socket_retries === 0) {
     return;
   }
 
   window.setTimeout(function () {
-    socketRetries -= 1;
+    socket_retries -= 1;
     window.socket = new SockJS(wsurl);
     socket.onopen = onOpen;
     socket.onclose = onClose;
