@@ -64,8 +64,8 @@ wsurl = wsurl.join('');
 //----------------------------------------------------------------------------
 var CommandModel = Backbone.Model.extend({
   defaults: {
-    'mode': 'tail',
-    'file':  null,
+    'mode':   null,
+    'file':   null,
     'script': null,
     'tail-lines': 60
   }
@@ -114,9 +114,6 @@ var FileSelectView = Backbone.View.extend({
   },
 
   render: function() {
-    var first_option = this.$el[0].options[0].value;
-    this.model.set({'file': first_option});
-
     this.$el.selectize({
       highlight: false,
       selectOnTab: true
@@ -128,16 +125,12 @@ var FileSelectView = Backbone.View.extend({
 //----------------------------------------------------------------------------
 var ScriptView = Backbone.View.extend({
   initialize: function() {
-    this.listenTo(this.model, 'change:mode', this.rendermode);
+    this.listenTo(this.model, 'change:mode', this.renderMode);
     this.render();
   },
 
   events: {
     'change': '_changeScript'
-  },
-
-  _changeScript: function() {
-    this.model.set({'script': this.$el.val()});
   },
 
   _placeholders: {
@@ -146,7 +139,19 @@ var ScriptView = Backbone.View.extend({
     'grep': '.*'
   },
 
-  rendermode: function() {
+  _changeScript: function() {
+    var mode  = this.model.get('mode');
+    var value = this.$el.val();
+
+    // Pressing enter on an empty input field will use the placeholder value.
+    if (value == "" && mode in this._placeholders) {
+      value = this._placeholders[mode];
+    }
+
+    this.model.set({'script': value});
+  },
+
+  renderMode: function() {
     var mode = this.model.get('mode')
       , el = this.$el;
 
@@ -157,7 +162,7 @@ var ScriptView = Backbone.View.extend({
     } else {
       el.attr('disabled', 'disabled');
       el.val('');
-      el.attr('placeholder', 'mode "'+mode+'" does not accept input');
+      el.attr('placeholder', 'mode "' + mode + '" does not accept any input');
     }
 
     return this;
@@ -426,6 +431,12 @@ window.modeselectview = new ModeSelectView({model: cmdmodel, el: '#modeselect > 
 window.scriptview = new ScriptView({model: cmdmodel, el: '#scriptinput input'});
 window.actionsview = new ActionsView({model: uimodel, el: '.quickbar .button-group'});
 window.buttonsview = new PanelView({model: uimodel, cmdmodel: cmdmodel, el: '.toolbar'});
+
+// Set the mode and logfile to the first option from the select lists.
+var _first_logfile = $('#logselect  > select')[0].options[0].value;
+var _first_mode    = $('#modeselect > select')[0].options[0].value;
+window.cmdmodel.set({'file': _first_logfile});
+window.cmdmodel.set({'mode': _first_mode})
 
 resizeLogview();
 $(window).resize(resizeLogview);
