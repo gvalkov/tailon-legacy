@@ -1,8 +1,18 @@
 //----------------------------------------------------------------------------
 // Fonts
 //----------------------------------------------------------------------------
-// Taken from Stack Overflow's CSS.
-$ttfonts:  Consolas, Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace, serif;
+$ttfonts: (
+  "Consolas",
+  "Menlo",
+  "Monaco",
+  "Lucida Console",
+  "Liberation Mono",
+  "DejaVu Sans Mono",
+  "Bitstream Vera Sans Mono",
+  "Courier New",
+  "monospace",
+  "serif"
+);
 
 $tailon-logview-font-size: 13px;
 
