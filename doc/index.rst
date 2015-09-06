@@ -171,6 +171,7 @@ Similar Projects
   - clarity_
   - errorlog_
   - `log.io`_
+  - rtail_
 
 
 Attributions
@@ -189,6 +190,7 @@ Tailon is released under the terms of the `Revised BSD License`_.
 .. _clarity:   https://github.com/tobi/clarity
 .. _errorlog:  http://www.psychogenic.com/en/products/Errorlog.php
 .. _`log.io`:  http://logio.org/
+.. _rtail:     http://rtail.org/
 .. _this:      http://www.iconfinder.com/icondetails/15150/48/terminal_icon
 .. _sandbox:   http://www.gnu.org/software/gawk/manual/html_node/Options.html#index-g_t_0040code_007b_002dS_007d-option-277
 .. _`Revised BSD License`: https://raw.github.com/gvalkov/tailon/master/LICENSE
