@@ -1,9 +1,10 @@
 @import 'vars';
+@import 'utils';
 
 $selectize-color-text: #c5c8c6;
 $selectize-font-size: 12px;
 $selectize-font-family: $ttfonts;
-$selectize-line-height: 24px;
+$selectize-line-height: 26px;
 
 /* $selectize-padding-x: 0; */
 $selectize-padding-y: 0;
@@ -74,6 +75,7 @@ $selectize-caret-margin: 0 1px;
 
     .selectize-input {
       background-color: $tailon-toolbar-input-background-color;
+      @include box-shadow(2px, 2px, 2px, 0px, darken($tailon-toolbar-input-background-color, 10%));
       /* @include selectize-box-shadow(#{0 1px 0 rgba(0, 0, 0, .05), inset 0 1px 0 rgba(255, 255, 255, .8)}); */
       /* @include selectize-vertical-gradient(#fefefe, #f2f2f2); */
     }
