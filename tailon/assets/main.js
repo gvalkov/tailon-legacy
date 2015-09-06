@@ -178,35 +178,37 @@ var PanelView = Backbone.View.extend({
   initialize: function(options) {
     this.options = options || {};
 
-    this.listenTo(this.model, 'change:panel-hidden', this.hideshowpanel);
-    this.listenTo(this.options.cmdmodel, 'change:file', this.updatehrefs); // don't know
+    this.listenTo(this.model, 'change:panel-hidden', this.hideShowPanel);
+    this.listenTo(this.options.cmdmodel, 'change:file', this.updateHrefs);
 
     this.$downloadA = this.$el.find('.toolbar-item .button-group .action-download');
   },
 
   events: {
-    'click .toolbar-item .button-group .action-hide-toolbar':  'sethidden',
-    'click .toolbar-item .button-group .action-clear-logview': 'clearlogview'
+    'click .toolbar-item .button-group .action-hide-toolbar':  'setHidden',
+    'click .toolbar-item .button-group .action-clear-logview': 'clearLogView'
   },
 
   // Update the download link whenever the selected file changes.
-  updatehrefs: function() {
+  updateHrefs: function() {
     this.$downloadA.attr('href', 'fetch/' + this.options.cmdmodel.get('file'));
   },
 
-  hideshowpanel: function() {
+  hideShowPanel: function() {
     if (this.model.get('panel-hidden')) {
       this.$el.slideUp('fast');
     } else {
       this.$el.show();
     }
+
+    resizeLogview();
   },
 
-  sethidden: function() {
+  setHidden: function() {
     this.model.set({'panel-hidden': true});
   },
 
-  clearlogview: function() {
+  clearLogView: function() {
     logviewer.clear();
   }
 });
@@ -215,14 +217,14 @@ var PanelView = Backbone.View.extend({
 //----------------------------------------------------------------------------
 var ActionsView = Backbone.View.extend({
   initialize: function() {
-    this.listenTo(this.model, 'change:panel-hidden', this.hideshowactions);
+    this.listenTo(this.model, 'change:panel-hidden', this.hideShowActions);
   },
 
   events: {
-    'click .action-show-toolbar': 'sethidden'
+    'click .action-show-toolbar': 'setHidden'
   },
 
-  hideshowactions: function() {
+  hideShowActions: function() {
     if (this.model.get('panel-hidden')) {
       this.$el.removeClass('hidden');
     } else {
@@ -230,7 +232,7 @@ var ActionsView = Backbone.View.extend({
     }
   },
 
-  sethidden: function() {
+  setHidden: function() {
     this.model.set({'panel-hidden': false});
   }
 });
@@ -440,9 +442,6 @@ window.cmdmodel.set({'mode': _first_mode})
 
 resizeLogview();
 $(window).resize(resizeLogview);
-
-// Select first file in list on load.
-// window.cmdmodel.model.set({'file': event.target.value});
 
 
 //----------------------------------------------------------------------------
