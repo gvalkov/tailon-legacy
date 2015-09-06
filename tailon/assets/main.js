@@ -49,7 +49,14 @@ function isInputFocused() {
 }
 
 function resizeLogview() {
-  var toolbar_height = (uimodel.get('pannel-hidden') ? 0 : $('.toolbar').outerHeight(true)); // todo
+  var toolbar_height;
+
+  if (uimodel.get('panel-hidden')) {
+    toolbar_height = 0;
+  } else {
+    toolbar_height = $('.toolbar').outerHeight(true);
+  }
+
   logviewer.container.height(window.innerHeight - toolbar_height);
 }
 
