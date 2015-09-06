@@ -241,7 +241,7 @@ function logview(selector) {
     , auto_scroll = true
     , auto_scroll_offset = null
     , history = []
-    , lines_of_history = 200  // 0 for infinite history
+    , lines_of_history = 2000  // 0 for infinite history
     , last_span = null
     , last_span_classes = '';
 
