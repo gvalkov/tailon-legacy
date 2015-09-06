@@ -20,7 +20,7 @@ classifiers = [
 ]
 
 requirements = [
-    'tornado>=4.0.2',
+    'tornado>=4.2.1',
     'sockjs-tornado>=1.0.1',
     'PyYAML>=3.11',
 ]

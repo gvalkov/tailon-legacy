@@ -4,6 +4,7 @@ doc/_build
 # Webassets
 .webassets-cache
 bower_components
+node_modules
 webassets-external
 
 *.py[cod]
