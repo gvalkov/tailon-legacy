@@ -9,7 +9,7 @@
   <title>Tailon</title>
   <meta name='description' content='Log Viewer'>
   <meta name='viewport' content='width=device-width'>
-  <link rel="shortcut icon" href="assets/favicon.ico?v=2" />
+  <link rel="shortcut icon" href='assets/favicon.ico?v=2' />
 
   <!-- WEBASSETS CSS -->
   <link rel='stylesheet' href='{{root}}assets/gen/3rdparty.css'>
@@ -25,7 +25,7 @@
 <body>
   <div class='quickbar'>
     <div class='button-group hidden'>
-      <a class='action-show-toolbar' href='#' title='Show Toolbar'><i class='fa fa-chevron-circle-down'></i></a>
+      <a class='action-show-toolbar' title='Show Toolbar'><i class='fa fa-chevron-circle-down'></i></a>
     </div>
   </div>
 
@@ -69,12 +69,26 @@
 
     <div class='toolbar-item' tabindex='4'>
       <div class='button-group' style='padding-right:5px;'>
-        <a class='action-download'      href='#' title='Download File'> <i class='fa fa-download'></i></a>
-        <a class='action-configure'     href='#' title='Configure'>     <i class='fa fa-wrench'></i></a>
-        <a class='action-clear-logview' href='#' title='Clear Logview'> <i class='fa fa-eraser'></i></a>
-        <a class='action-hide-toolbar'  href='#' title='Hide Toolbar'>  <i class='fa fa-chevron-circle-up'></i></a>
+        <a class='action-download'      title='Download File'> <i class='fa fa-download'></i></a>
+        <a class='action-configure'     title='Configure'>     <i class='fa fa-wrench'></i></a>
+        <a class='action-clear-logview' title='Clear Logview'> <i class='fa fa-eraser'></i></a>
+        <a class='action-hide-toolbar'  title='Hide Toolbar'>  <i class='fa fa-chevron-circle-up'></i></a>
       </div>
     </div>
+  </div>
+
+
+  <div id='configuration'>
+    <form>
+      <p>
+        <label for="history_lines">Scrollback lines:</label>
+        <input type="number" name="history_lines" id="history_lines", min="0", value="2000">
+      </p>
+      <p>
+        <label for="tail_lines">Tail lines:</label>
+        <input type="number" name="tail_lines" id="tail_lines", min="1", value="60">
+      </p>
+    </form>
   </div>
 
   <div class='scrollable'>

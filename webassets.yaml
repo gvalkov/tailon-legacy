@@ -20,6 +20,7 @@ bundles:
       - vendor/backbone/backbone.js
       - vendor/sockjs-client/dist/sockjs.js
       - vendor/jquery-cookie/jquery.cookie.js
+      - vendor/jquery-typewatch/jquery.typewatch.js
       - vendor/html5shiv/dist/html5shiv.js
       - vendor/jwerty/jwerty.js
 

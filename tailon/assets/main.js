@@ -43,6 +43,7 @@ function escapeHtml(string) {
   });
 }
 
+
 //----------------------------------------------------------------------------
 function isInputFocused() {
   return document.activeElement.nodeName === 'INPUT';
@@ -60,11 +61,13 @@ function resizeLogview() {
   logviewer.container.height(window.innerHeight - toolbar_height);
 }
 
+
 //----------------------------------------------------------------------------
 // more globals
 var wspath = endsWith(window.relativeRoot, '/') ? 'ws' : '/ws';
 var wsurl = [window.location.protocol, '//', window.location.host, window.relativeRoot, wspath];
 wsurl = wsurl.join('');
+
 
 //----------------------------------------------------------------------------
 // Models.
@@ -80,9 +83,11 @@ var CommandModel = Backbone.Model.extend({
 
 var UiModel = Backbone.Model.extend({
   defaults: {
-    'panel-hidden': false
+    'panel-hidden': false,
+    'history-lines': 2000
   }
 });
+
 
 //----------------------------------------------------------------------------
 // Views.
@@ -105,6 +110,7 @@ var ModeSelectView = Backbone.View.extend({
     return this;
   }
 });
+
 
 //----------------------------------------------------------------------------
 var FileSelectView = Backbone.View.extend({
@@ -129,6 +135,7 @@ var FileSelectView = Backbone.View.extend({
   }
 });
 
+
 //----------------------------------------------------------------------------
 var ScriptView = Backbone.View.extend({
   initialize: function() {
@@ -151,7 +158,7 @@ var ScriptView = Backbone.View.extend({
     var value = this.$el.val();
 
     // Pressing enter on an empty input field will use the placeholder value.
-    if (value == "" && mode in this._placeholders) {
+    if (value === "" && mode in this._placeholders) {
       value = this._placeholders[mode];
     }
 
@@ -180,6 +187,7 @@ var ScriptView = Backbone.View.extend({
   }
 });
 
+
 //----------------------------------------------------------------------------
 var PanelView = Backbone.View.extend({
   initialize: function(options) {
@@ -193,7 +201,8 @@ var PanelView = Backbone.View.extend({
 
   events: {
     'click .toolbar-item .button-group .action-hide-toolbar':  'setHidden',
-    'click .toolbar-item .button-group .action-clear-logview': 'clearLogView'
+    'click .toolbar-item .button-group .action-clear-logview': 'clearLogView',
+    'click .toolbar-item .button-group .action-configure':     'toggleConfigurePopup',
   },
 
   // Update the download link whenever the selected file changes.
@@ -217,6 +226,58 @@ var PanelView = Backbone.View.extend({
 
   clearLogView: function() {
     logviewer.clear();
+  },
+
+  toggleConfigurePopup: function() {
+    $('#configuration').toggle();
+  }
+});
+
+
+//----------------------------------------------------------------------------
+var ConfigurationView = Backbone.View.extend({
+  initialize: function(options) {
+    this.options = options || {};
+
+    this.listenTo(this.model, 'change:history-lines', this.updateHistoryLines);
+    this.listenTo(this.options.cmdmodel, 'change:tail-lines', this.updateHrefs);
+
+    this.render();
+  },
+
+  historyLinesChanged: function(event) {
+    this.model.set({'history-lines': parseInt(event.target.value)});
+  },
+
+  tailLinesChanged: function(event) {
+    this.options.cmdmodel.set({'tail-lines': parseInt(event.target.value)});
+  },
+
+  render: function() {
+    var view = this;
+    var watch_options = {
+      wait: 500,
+      highlight: true,
+      captureLength: 1,
+      callback: function (value) {
+        switch (this.id) {
+          case 'history_lines':
+            view.historyLinesChanged({'target': {'value': value}});
+            break;
+          case 'tail_lines':
+            view.tailLinesChanged({'target': {'value': value}});
+            break;
+        }
+      }
+    };
+
+    // Send input event only after user has finished typing.
+    $("#history_lines").typeWatch(watch_options);
+    $("#tail_lines").typeWatch(watch_options);
+
+    // Set the configuration inputs to the model defaults.
+    $('#history_lines')[0].value = this.model.get('history-lines');
+    $('#tail_lines')[0].value = this.options.cmdmodel.get('tail-lines');
   }
 });
 
@@ -247,7 +308,7 @@ var ActionsView = Backbone.View.extend({
 //----------------------------------------------------------------------------
 // Logview "controller".
 //----------------------------------------------------------------------------
-function logview(selector) {
+function logview(selector, history_lines) {
   var self = this
     , fragment = document.createDocumentFragment()
     , container = $(selector)
@@ -255,10 +316,10 @@ function logview(selector) {
     , auto_scroll = true
     , auto_scroll_offset = null
     , history = []
-    , lines_of_history = 2000  // 0 for infinite history
     , last_span = null
     , last_span_classes = '';
 
+  this.history_lines = history_lines;
   this.container = container;
 
   this.logEntry = function(data) {
@@ -303,8 +364,9 @@ function logview(selector) {
   };
 
   this.trimHistory = function() {
-    if (lines_of_history !== 0 && history.length > lines_of_history) {
-      for (var i=0; i<(history.length-lines_of_history); i++) {
+    // Use this.history_lines = 0 for infinite history.
+    if (this.history_lines !== 0 && history.length > this.history_lines) {
+      for (var i=0; i<(history.length - this.history_lines); i++) {
         container_dom.removeChild(history.shift());
       }
     }
@@ -313,7 +375,7 @@ function logview(selector) {
   this.scroll = function() {
     if (auto_scroll) {
       // autoscroll only if div is scrolled within 40px of the bottom
-      auto_scroll_offset = container_dom.scrollTop-(container_dom.scrollHeight-container_dom.offsetHeight);
+      auto_scroll_offset = container_dom.scrollTop - (container_dom.scrollHeight - container_dom.offsetHeight);
       if (Math.abs(auto_scroll_offset) < 40) {
         container_dom.scrollTop = container_dom.scrollHeight;
       }
@@ -387,11 +449,11 @@ function onMessage(e) {
   logviewer.write(spans);
 }
 
-function wscommand(m) {
-  var fn = m.get('file')
-    , mode = m.get('mode')
-    , script = m.get('script')
-    , lines = m.get('tail-lines');
+function wscommand(model) {
+  var fn = model.get('file')
+    , mode = model.get('mode')
+    , script = model.get('script')
+    , lines = model.get('tail-lines');
 
   (function() {
     if (connected) {
@@ -422,30 +484,40 @@ function wscommand(m) {
 
 //----------------------------------------------------------------------------
 // Connect everything together.
-logviewer = logview('#logviewer');
+
+// Models.
+window.cmdmodel = new CommandModel();
+window.uimodel = new UiModel();
+
+// Logview object.
+logviewer = logview('#logviewer', window.uimodel.get('history-lines'));
 
 socket.onopen = onOpen;
 socket.onclose = onClose;
 socket.onmessage = onMessage;
-
-window.cmdmodel = new CommandModel();
-window.uimodel = new UiModel();
-
-cmdmodel.on('change', function(model) {
+window.cmdmodel.on('change', function(model) {
   wscommand(model);
 });
 
+// Views
 window.fileselectview = new FileSelectView({model: cmdmodel, el: '#logselect  > select'});
 window.modeselectview = new ModeSelectView({model: cmdmodel, el: '#modeselect > select'});
 window.scriptview = new ScriptView({model: cmdmodel, el: '#scriptinput input'});
 window.actionsview = new ActionsView({model: uimodel, el: '.quickbar .button-group'});
 window.buttonsview = new PanelView({model: uimodel, cmdmodel: cmdmodel, el: '.toolbar'});
+window.configview = new ConfigurationView({model: uimodel, cmdmodel: cmdmodel, el: '#configuration'});
 
 // Set the mode and logfile to the first option from the select lists.
 var _first_logfile = $('#logselect  > select')[0].options[0].value;
 var _first_mode    = $('#modeselect > select')[0].options[0].value;
 window.cmdmodel.set({'file': _first_logfile});
-window.cmdmodel.set({'mode': _first_mode})
+window.cmdmodel.set({'mode': _first_mode});
+
+window.uimodel.on('change:history-lines', function(model) {
+  var lines = model.get('history-lines');
+  console.log(lines);
+  window.logviewer.history_lines = lines;
+});
 
 resizeLogview();
 $(window).resize(resizeLogview);
