@@ -200,6 +200,11 @@ def main(argv=sys.argv):
 
     config = setup(opts)
 
+    all_files = {i for values in config['files'].values() for i in values}
+    if not all_files:
+        print('Error: none of the given files exist or are readable.', file=sys.stderr)
+        sys.exit(1)
+
     application = Application(config, {}, template_dir, assets_dir)
     server = httpserver.HTTPServer(application)
     server.listen(config['port'], config['addr'])
