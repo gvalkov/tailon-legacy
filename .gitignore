@@ -1,5 +1,5 @@
 logs
-doc/_build
+docs/_build
 
 # Webassets
 .webassets-cache
