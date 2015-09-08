@@ -1,17 +1,23 @@
 Development
------------
+===========
+
+Notes on developing tailon, the front-end asset build flow and a list
+of long-standing todos.
+
 
 Front-end assets
-================
+----------------
 
-::
+Tailon's asset pipeline uses bower_, webassets_ and several invoke_
+tasks that tie them together. The tree structure of relevant files is
+as follows::
 
    . <root>
-   |-- bower_components/
-   |-- bower.json
+   |-- bower_components/   # 'bower install' download location (git ignored)
+   |-- bower.json          # list of pinned front-end requirements
    |-- setup.py
-   |-- tasks.py
-   |-- webassets.yaml
+   |-- tasks.py            # build configuration (uses the invoke tool)
+   |-- webassets.yaml      # asset pipeline configuration
    `-- tailon/assets
        |-- fonts/
        |-- gen/
@@ -19,16 +25,13 @@ Front-end assets
        |-- scss/
        `-- vendor/
 
-The asset pipeline in tailon uses bower_, webassets_ and several invoke_ tasks that tie
-them together.
-
 Bower is used to fetch tailon's front-end dependencies. When ``bower install`` is ran in
 the root of the project, the assets listed in ``bower.json`` are downloaded to the
 ``bower_components`` directory.
 
-With the help of ``inv collectstatic``, all source files in ``bower_components`` are
-copied to ``tailon/assets/vendor``. Note that unlike ``bower_components``, this directory
-is committed to git.
+With the help of the ``inv collectstatic`` task, all source files in ``bower_components``
+are copied to ``tailon/assets/vendor``. Note that unlike ``bower_components``, this
+directory is committed to git.
 
 Running ``inv webassets`` generates the files in ``inv tailon/assets/gen``. These are the
 assets that end up in the tailon source package that is uploaded to PyPi. The rules that
@@ -39,55 +42,57 @@ transformations happen::
   tailon/assets/vendor/*  --> jsmin          --> tailon/assets/gen/3rdparty.js
   tailon/assets/main.js   --> jsmin          --> tailon/assets/gen/main.js
 
-This also places the following lines in ``tailon/templates/index.html``::
+The links to the assets find their way into the ``templates/index.html`` template through
+the ``webassets --replace`` task. It replaces the html between the ``WEBASSETS CSS`` and
+``WEBASSETS JS`` placeholders with the links to the compiled, minified and concatenated
+scss and js files. For example::
 
   <link rel='stylesheet' href='{{root}}assets/gen/main.css'>
   <script src='{{root}}assets/gen/3rdparty.js'></script>
   <script src='{{root}}assets/gen/main.js'></script>
 
+You may also want to skip the minification and concatenation steps with the ``--debug``
+option.
 
-A more pragmatic introduction to the asset pipeline would be:
+FAQ
+...
 
-1) Adding or updating a third-party dependency:
+* Adding or updating a third-party dependency:
 
 .. code-block:: bash
 
-    # edit bower.json
+    # Run after adding the dependency to the bower.json file.
     $ bower install
-    $ inv collectstatic
+    $ inv collectstatic  # Copies from bower_components to tailon/assets/vendor.
     $ inv webassets --replace --no-expire
 
-2) Making changes to ``main.js`` or ``scss/*``:
+* Making changes to ``main.js`` or any of the files in ``scss``:
 
 .. code-block:: bash
 
+    # Compile and minify SCSS; Concatenate and minify JS.
     $ inv webassets --replace --no-expire
 
-Or if you don't want to minify and concatenate assets:
-
-.. code-block:: bash
-
+    # Without minifying and concatenating JS (usefuly for debugging).
     $ inv webassets --replace --no-expire --debug
 
 
-
-
-
-
 Todo
-====
+----
 
-  - There are still parts of the UI that haven't been implemented.
+- There are still parts of the UI that haven't been implemented.
 
-  - Fix select2 related styling glitches.
+- Fix styling issues related to selectize.
 
-  - Visual/Audible alarms on log activity.
+- Visual/Audible alarms on log activity.
 
-  - Interface themes.
+- Interface themes.
 
-  - Windows support.
+- Improved windows support.
 
-  - Investigate the use of seccomp_ on Linux for unsafe commands.
+- Investigate the use of seccomp_ on Linux for unsafe commands.
+
+- Handling of different tool versions (i.e. GNU awk vs BSD awk).
 
 
 .. _seccomp:    http://en.wikipedia.org/wiki/Seccomp

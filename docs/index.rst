@@ -10,6 +10,7 @@ the following commands::
     tail -f | awk
     tail -f | sed
 
+
 Screenshots
 -----------
 
@@ -37,42 +38,39 @@ Screenshots
 Installation
 ------------
 
-The latest stable version of tailon can be installed from pypi_, while
-the development version can be installed from github_:
+The latest stable version of tailon can be installed from pypi_:
 
 .. code-block:: bash
 
-    $ pip install tailon  # stable version
-    $ pip install git+git://github.com/gvalkov/tailon.git  # development version
+    $ pip install tailon
 
-Tailon can also be installed manually:
+The development version is available on github_ and can also be
+installed with the help of pip:
 
 .. code-block:: bash
 
-    $ git clone git@github.com:gvalkov/tailon.git
-    $ cd tailon
-    $ git reset --hard HEAD $versiontag
-    $ python setup.py install
+    $ pip install git+git://github.com/gvalkov/tailon.git
 
 
 Quick start
 -----------
 
-Tailon is a command-line tool that spawns a http server. It can be
-configured entirely from its command-line interface or through a yaml
-config file.
+Tailon is a command-line tool that spawns a local http server that
+serves your logfiles. It can be configured entirely from its
+command-line interface or through the convenience of a yaml config
+file.
 
-To get started with tailon you give it a list of files that you wish
-to monitor:
+To get started, run tailon with the list of files that you wish to
+monitor:
 
 .. code-block:: bash
 
     $ tailon -f /var/log/nginx/* /var/log/apache/{access,error}.log
 
-If at least one of the specified files is readable by the current user,
-tailon will start listening on http://localhost:8080.
+If at least one of the specified files is readable, tailon will start
+listening on http://localhost:8080.
 
-Tailon's server-side functionality is documented in its help message::
+Tailon's server-side functionality is summarized in the tool's help message::
 
     $ tailon --help
     Usage: tailon [-c path] [-f path [path ...]] [-h] [-d] [-v] [-b addr:port]
@@ -106,6 +104,9 @@ Tailon's server-side functionality is documented in its help message::
         - 'cron':
             - '/var/log/cron*'
 
+Please note that wildcards specified in the config file will be
+evaluated only once at server-start time.
+
 
 Usage with nginx
 ----------------
@@ -136,54 +137,56 @@ Usage with nginx
 Security
 --------
 
-Tailon runs commands on the server it is installed on. While commands
-that accept a script (eg. awk, sed, grep) should be invulnerable to
-shell injection, they may still allow for arbitrary command execution
-and/or access to the filesystem.
+Tailon runs commands on the server it is installed on. While commands that
+accept a script argument (such as awk, sed and grep) should be invulnerable
+to shell injection, they may still allow for arbitrary command execution
+and unrestricted access to the filesystem.
 
-To clarify this point, consider the following command::
+To clarify this point, consider the following input to the sed command::
 
-  s/a/b'; cat /root
+  s/a/b'; cat /etc/secrets
 
-This will result in an error, as tailon does not invoke commands
-through a shell. On the other hand the following command is a
-perfectly valid sed script that has the same effect as the above
-attempt for a shell injection::
+This will result in an error, as tailon does not invoke commands through a
+shell. On the other hand the following command is a perfectly valid sed
+script that has the same effect as the above attempt for a shell
+injection::
 
-  r /etc/passwd
+  r /etc/secrets
 
-The default set of enabled commands - tail, grep and awk - should be
-safe to use. Awk is ran in sandbox_ mode, which prevents scripts from
-accessing your system, either through the ``system()`` builtin or by
-using input redirection.
+The default set of enabled commands - tail, grep and awk - should be safe
+to use. GNU awk is ran in sandbox_ mode, which prevents scripts from
+accessing your system, either through the ``system()`` builtin or by using
+input redirection.
 
 
 Development
 -----------
 
-Please refer to :doc:`this page <development>` if you're interested in
-developing tailon.
+Code, bug reports and feature requests are kindly accepted on tailon's
+github_ page. Please refer to the :doc:`development <development>` document
+for more information on developing tailon.
 
 
 Similar Projects
 ----------------
 
-  - clarity_
-  - errorlog_
-  - `log.io`_
-  - rtail_
+- clarity_
+- errorlog_
+- `log.io`_
+- rtail_
 
 
 Attributions
 ------------
 
-  - Tailon's favicon was created from this_ icon.
+- Tailon's favicon was created from this_ icon.
 
 
 License
 -------
 
 Tailon is released under the terms of the `Revised BSD License`_.
+
 
 .. _pypi:      http://pypi.python.org/pypi/tailon
 .. _github:    https://github.com/gvalkov/tailon
