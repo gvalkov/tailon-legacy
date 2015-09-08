@@ -29,7 +29,7 @@ class Commands:
         self.sedexe = sed
         self.powershellexe = powershell
 
-    # @todo: factor out common logic
+    # @todo: Factor out common logic.
     def awk(self, script, fn, stdout, stderr, **kw):
         cmd = [self.awkexe, '--sandbox', script]
         if fn:
@@ -66,7 +66,7 @@ class Commands:
         log.debug('running tail %s, pid: %s', cmd, p.proc.pid)
         return p
 
-    # TODO: Chose tail implementation dependencing on platform.
+    # @todo: Choose tail implementation dependencing on platform.
     tail = tail_unix
 
     def tail_awk(self, n, fn, script, stdout, stderr):
@@ -86,12 +86,14 @@ class Commands:
         tail.stdout.close()
         return tail, sed
 
+
 #-----------------------------------------------------------------------------
 class BaseHandler(web.RequestHandler):
     def __init__(self, *args, **kw):
         super(BaseHandler, self).__init__(*args, **kw)
         self.config = self.application.config
         self.client_config = self.application.client_config
+
 
 class Index(BaseHandler):
     def get(self):
@@ -108,6 +110,7 @@ class Index(BaseHandler):
 
         self.render('index.html', **ctx)
 
+
 class Files(BaseHandler):
     @staticmethod
     def statfiles(files):
@@ -117,35 +120,43 @@ class Files(BaseHandler):
             yield fn, getsize(fn), getmtime(fn)
 
     def get(self):
-        # TODO: Use this instead of the template.
+        # @todo: Use this instead of the template.
         files = self.config['files']['__ungrouped__']
         files = Files.statfiles(files)
         res = {'files': list(files)}
         self.set_header('Content-Type', 'application/json')
         self.write(json_encode(res))
 
+
 class Fetch(BaseHandler):
     def error(self, code, msg):
         self.set_header('Content-Type', 'text/html')
         self.set_status(500)
-        self.finish(
-            '<html><title>%(code)d: %(message)s</title>'
-            '<body><tt>%(code)d: %(message)s</tt></body></html>' % \
-                {'code': code, 'message': msg})
+
+        html = (
+            '<html>'
+            '<title>{code:d}: {message}</title>'
+            '<body><tt>{code:d}: {message}</tt></body>'
+            '</html>'
+        )
+        self.finish(html.format(code=code, message=msg))
 
     def get(self, path):
         if not self.config['allow-transfers']:
-            self.error(500, 'transfers not allowed'); return
+            self.error(500, 'transfers not allowed')
+            return
 
         all_files = {i for values in self.config['files'].values() for i in values}
         if path not in all_files:
-            self.error(404, 'file not found'); return
+            self.error(404, 'file not found')
+            return
 
         # basename = os.path.basename(path)
         # self.set_header('Content-Disposition', 'attachment; filename="%s"' % path+'asdf');
         self.set_header('Content-Type', 'text/plain')
         with open(path) as fh:
             self.write(fh.read())  # todo: stream
+
 
 class WebsocketCommands(SockJSConnection):
     def __init__(self, *args, **kw):
@@ -207,7 +218,7 @@ class WebsocketCommands(SockJSConnection):
             fn = msg['tail']
 
             if self.file_exists(fn):
-                n = msg.get('last', 10)
+                n = msg.get('tail-lines', 10)
                 self.tail = self.cmd.tail(n, fn, STREAM, STREAM)
 
                 outcb = partial(self.stdout_callback, fn, self.tail.stdout)
@@ -218,7 +229,7 @@ class WebsocketCommands(SockJSConnection):
         elif 'grep' in msg and 'grep' in cmds:
             fn = msg['grep']
             if self.file_exists(fn):
-                n = msg.get('last', 10)
+                n = msg.get('tail-lines', 10)
                 regex = msg.get('script', '.*')
 
                 # self.tail, self.grep = self.cmd.tail_grep2(n, fn, regex)
@@ -233,7 +244,7 @@ class WebsocketCommands(SockJSConnection):
         elif 'awk' in msg and 'awk' in cmds:
             fn = msg['awk']
             if self.file_exists(fn):
-                n = msg.get('last', 10)
+                n = msg.get('tail-lines', 10)
                 script = msg.get('script', '{print $0}')
 
                 self.tail, self.awk = self.cmd.tail_awk(n, fn, script, STREAM, STREAM)
@@ -247,7 +258,7 @@ class WebsocketCommands(SockJSConnection):
         elif 'sed' in msg and 'sed' in cmds:
             fn = msg['sed']
             if self.file_exists(fn):
-                n = msg.get('last', 10)
+                n = msg.get('tail-lines', 10)
                 script = msg.get('script', 's|.*|&|')
 
                 self.tail, self.sed = self.cmd.tail_sed(n, fn, script, STREAM, STREAM)
@@ -266,6 +277,7 @@ class WebsocketCommands(SockJSConnection):
     def wjson(self, data):
         return self.send(json_encode(data))
 
+
 #-----------------------------------------------------------------------------
 class Application(web.Application):
     here = dirname(__file__)
@@ -277,12 +289,12 @@ class Application(web.Application):
 
         routes = [
             [r'/assets/(.*)', web.StaticFileHandler, {'path': pjoin(self.here, 'assets/')}],
-            [r'/files', Files],  # TODO: Not used.
+            [r'/files', Files],  # @todo: Not used.
             [r'/fetch/(.*)', Fetch],
             [r'/', Index],
         ]
 
-        # tornado is specific about routes being a list of tuples
+        # Tornado is pretentious about routes being a list of tuples.
         for n, route in enumerate(routes):
             route[0] = pjoin('/', prefix, route[0].lstrip('/'))
             routes[n] = tuple(route)

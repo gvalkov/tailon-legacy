@@ -6,6 +6,8 @@ doc/_build
 bower_components
 node_modules
 webassets-external
+tailon/assets/vendor/fontawesome/less
+tailon/assets/vendor/fontawesome/scss
 
 *.py[cod]
 TAGS

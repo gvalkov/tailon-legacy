@@ -194,7 +194,7 @@ def main(argv=sys.argv):
 
     try:
         template_dir = pkg_resources.resource_filename('tailon', 'templates')
-        assets_dir   = pkg_resources.resource_filename('tailon', 'assets')
+        assets_dir = pkg_resources.resource_filename('tailon', 'assets')
     except ImportError:
         template_dir, assets_dir = None, None
 

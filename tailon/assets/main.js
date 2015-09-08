@@ -1,14 +1,10 @@
 // global $:false, jQuery:false
 // jshint laxcomma: true, sub: true
 
-//----------------------------------------------------------------------------
-// globals
-var logviewer = null;
-var connected = false;
-var socket_retries = 10;
 
 //----------------------------------------------------------------------------
-// utility functions
+// Utility Functions.
+//----------------------------------------------------------------------------
 function formatBytes(size) {
   var units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
   var i = 0;
@@ -29,7 +25,6 @@ function endsWith(str, suffix) {
   return str.indexOf(suffix, str.length - suffix.length) !== -1;
 }
 
-// escapeHtml from mustache.js
 var escape_entity_map = {
   "&": "&amp;",
   "<": "&lt;",
@@ -37,6 +32,7 @@ var escape_entity_map = {
   "/": '&#x2F;'
 };
 
+// This is the escapeHtml function from mustache.js.
 function escapeHtml(string) {
   return String(string).replace(/[&<>\/]/g, function (s) {
     return escape_entity_map[s];
@@ -45,39 +41,29 @@ function escapeHtml(string) {
 
 
 //----------------------------------------------------------------------------
-function isInputFocused() {
-  return document.activeElement.nodeName === 'INPUT';
-}
-
-function resizeLogview() {
-  var toolbar_height;
-
-  if (uimodel.get('panel-hidden')) {
-    toolbar_height = 0;
-  } else {
-    toolbar_height = $('.toolbar').outerHeight(true);
-  }
-
-  logviewer.container.height(window.innerHeight - toolbar_height);
-}
-
-
+// Globals (this used to be a really short script ...).
 //----------------------------------------------------------------------------
-// more globals
+window.logviewer = null;     // Logview instance.
+window.socket = null;        // SockJS socket.
+window.connected = false;    //
+window.socket_retries = 10;  // Number of connection retries.
+
 var wspath = endsWith(window.relativeRoot, '/') ? 'ws' : '/ws';
-var wsurl = [window.location.protocol, '//', window.location.host, window.relativeRoot, wspath];
-wsurl = wsurl.join('');
+window.wsurl = [window.location.protocol, '//', window.location.host, window.relativeRoot, wspath];
+window.wsurl = window.wsurl.join('');
 
 
 //----------------------------------------------------------------------------
 // Models.
 //----------------------------------------------------------------------------
+
+// Changing the command model will re-execute the tail command on the backend.
 var CommandModel = Backbone.Model.extend({
   defaults: {
-    'mode':   null,
-    'file':   null,
-    'script': null,
-    'tail-lines': 60
+    'mode': null,     // The current command (e.g. tail, tail+awk, tail+grep).
+    'file': null,
+    'script': null,   // The script to pass to commands that accept script.
+    'tail-lines': 60  // i.e. tail -n ${tail-lines}.
   }
 });
 
@@ -98,10 +84,10 @@ var ModeSelectView = Backbone.View.extend({
   },
 
   events: {
-    'change': 'modechange'
+    'change': 'modeChange'
   },
 
-  modechange: function(event) {
+  modeChange: function(event) {
     this.model.set({'mode': event.target.value, 'script': null});
   },
 
@@ -119,10 +105,10 @@ var FileSelectView = Backbone.View.extend({
   },
 
   events: {
-    'change': 'filechange'
+    'change': 'fileChange'
   },
 
-  filechange: function(event) {
+  fileChange: function(event) {
     this.model.set({'file': event.target.value});
   },
 
@@ -157,7 +143,7 @@ var ScriptView = Backbone.View.extend({
     var mode  = this.model.get('mode');
     var value = this.$el.val();
 
-    // Pressing enter on an empty input field will use the placeholder value.
+    // Pressing enter in an empty input field will use the placeholder value.
     if (value === "" && mode in this._placeholders) {
       value = this._placeholders[mode];
     }
@@ -202,7 +188,7 @@ var PanelView = Backbone.View.extend({
   events: {
     'click .toolbar-item .button-group .action-hide-toolbar':  'setHidden',
     'click .toolbar-item .button-group .action-clear-logview': 'clearLogView',
-    'click .toolbar-item .button-group .action-configure':     'toggleConfigurePopup',
+    'click .toolbar-item .button-group .action-configure':     'toggleConfigurePopup'
   },
 
   // Update the download link whenever the selected file changes.
@@ -225,7 +211,7 @@ var PanelView = Backbone.View.extend({
   },
 
   clearLogView: function() {
-    logviewer.clear();
+    window.logviewer.clear();
   },
 
   toggleConfigurePopup: function() {
@@ -238,10 +224,6 @@ var PanelView = Backbone.View.extend({
 var ConfigurationView = Backbone.View.extend({
   initialize: function(options) {
     this.options = options || {};
-
-    this.listenTo(this.model, 'change:history-lines', this.updateHistoryLines);
-    this.listenTo(this.options.cmdmodel, 'change:tail-lines', this.updateHrefs);
-
     this.render();
   },
 
@@ -308,7 +290,7 @@ var ActionsView = Backbone.View.extend({
 //----------------------------------------------------------------------------
 // Logview "controller".
 //----------------------------------------------------------------------------
-function logview(selector, history_lines) {
+function Logview(selector, history_lines) {
   var self = this
     , fragment = document.createDocumentFragment()
     , container = $(selector)
@@ -393,36 +375,49 @@ function logview(selector, history_lines) {
 }
 
 
+function resizeLogview() {
+  var toolbar_height;
+
+  if (window.uimodel.get('panel-hidden')) {
+    toolbar_height = 0;
+  } else {
+    toolbar_height = $('.toolbar').outerHeight(true);
+  }
+
+  window.logviewer.container.height(window.innerHeight - toolbar_height);
+}
+
+
 //----------------------------------------------------------------------------
-// Communication with backend
+// Communication with the backend.
 //----------------------------------------------------------------------------
-var socket = new SockJS(wsurl);
+window.socket = new SockJS(window.wsurl);
 
 function onOpen() {
-  connected = true;
+  window.connected = true;
 }
 
 function onClose() {
-  connected = false;
+  window.connected = false;
 
-  if (socket_retries === 0) {
+  if (window.socket_retries === 0) {
     return;
   }
 
   window.setTimeout(function () {
-    socket_retries -= 1;
-    window.socket = new SockJS(wsurl);
-    socket.onopen = onOpen;
-    socket.onclose = onClose;
-    socket.onmessage = onMessage;
+    window.socket_retries -= 1;
+    window.socket = new SockJS(window.wsurl);
+    window.socket.onopen = onOpen;
+    window.socket.onclose = onClose;
+    window.socket.onmessage = onMessage;
   }, 1000);
 }
 
 function onMessage(e) {
   var data = JSON.parse(e.data)
     , spans = [], i, line
-    , logEntry = logviewer.logEntry
-    , logNotice = logviewer.logNotice;
+    , logEntry = window.logviewer.logEntry
+    , logNotice = window.logviewer.logNotice;
 
   if ('err' in data) {
     if (data['err'] === 'truncated') {
@@ -434,9 +429,6 @@ function onMessage(e) {
         spans.push(logNotice(line));
       }
     }
-    // var now = window.moment().format();
-    // spans.push(logNotice(data['err']));
-    // spans.push(logNotice(now + ' - ' + data['fn'] + ' - truncated'));
   } else {
     $.each(data, function (fn, payload) {
       for (i=0; i<payload.length; i++) {
@@ -446,25 +438,24 @@ function onMessage(e) {
     });
   }
 
-  logviewer.write(spans);
+  window.logviewer.write(spans);
 }
 
 function wscommand(model) {
   var fn = model.get('file')
     , mode = model.get('mode')
-    , script = model.get('script')
-    , lines = model.get('tail-lines');
+    , script = model.get('script');
 
   (function() {
-    if (connected) {
+    if (window.connected) {
       if (fn === null) {
-        logviewer.clear();
+        window.logviewer.clear();
         return;
       }
 
       var msg = {};
       msg[mode] = fn;
-      msg['last'] = lines;
+      msg['tail-lines'] = model.get('tail-lines');
 
       if (mode != 'tail') {
         if (!script) {
@@ -474,62 +465,70 @@ function wscommand(model) {
         }
       }
 
-      logviewer.clear();
-      socket.send(JSON.stringify(msg));
+      window.logviewer.clear();
+      window.socket.send(JSON.stringify(msg));
     } else {
       window.setTimeout(arguments.callee, 20);
     }
   })();
 }
 
+
 //----------------------------------------------------------------------------
 // Connect everything together.
+//----------------------------------------------------------------------------
 
 // Models.
 window.cmdmodel = new CommandModel();
 window.uimodel = new UiModel();
 
 // Logview object.
-logviewer = logview('#logviewer', window.uimodel.get('history-lines'));
+window.logviewer = Logview('#logviewer', window.uimodel.get('history-lines'));
 
-socket.onopen = onOpen;
-socket.onclose = onClose;
-socket.onmessage = onMessage;
+// Backend communication.
+window.socket.onopen = onOpen;
+window.socket.onclose = onClose;
+window.socket.onmessage = onMessage;
 window.cmdmodel.on('change', function(model) {
   wscommand(model);
 });
 
-// Views
-window.fileselectview = new FileSelectView({model: cmdmodel, el: '#logselect  > select'});
-window.modeselectview = new ModeSelectView({model: cmdmodel, el: '#modeselect > select'});
-window.scriptview = new ScriptView({model: cmdmodel, el: '#scriptinput input'});
-window.actionsview = new ActionsView({model: uimodel, el: '.quickbar .button-group'});
-window.buttonsview = new PanelView({model: uimodel, cmdmodel: cmdmodel, el: '.toolbar'});
-window.configview = new ConfigurationView({model: uimodel, cmdmodel: cmdmodel, el: '#configuration'});
+// Views.
+window.fileselectview = new FileSelectView({model: window.cmdmodel, el: '#logselect  > select'});
+window.modeselectview = new ModeSelectView({model: window.cmdmodel, el: '#modeselect > select'});
+window.scriptview  = new ScriptView({model:  window.cmdmodel, el: '#scriptinput input'});
+window.actionsview = new ActionsView({model: window.uimodel,  el: '.quickbar .button-group'});
+window.buttonsview = new PanelView({model:   window.uimodel, cmdmodel: window.cmdmodel, el: '.toolbar'});
+window.configview  = new ConfigurationView({model: window.uimodel, cmdmodel: window.cmdmodel, el: '#configuration'});
 
-// Set the mode and logfile to the first option from the select lists.
+// Set the mode and logfile to the first option from the select element.
 var _first_logfile = $('#logselect  > select')[0].options[0].value;
 var _first_mode    = $('#modeselect > select')[0].options[0].value;
 window.cmdmodel.set({'file': _first_logfile});
 window.cmdmodel.set({'mode': _first_mode});
 
+//
 window.uimodel.on('change:history-lines', function(model) {
   var lines = model.get('history-lines');
-  console.log(lines);
   window.logviewer.history_lines = lines;
 });
 
+// @todo: ...
 resizeLogview();
 $(window).resize(resizeLogview);
 
 
 //----------------------------------------------------------------------------
-// shortcuts:
+// Shortcuts:
 //   ctrl+l - clear screen (major conflict with 'go to addressbar')
 //   ctrl+= - increase font size (logview div only)
 //   ctrl+- - decrease font size (logview div only)
 //   ret    - mark current time
-jwerty.key('ctrl+l', logviewer.clear);
+function isInputFocused() {
+  return document.activeElement.nodeName === 'INPUT';
+}
+
+jwerty.key('ctrl+l', window.logviewer.clear);
 jwerty.key('q', function () {
   if (isInputFocused()) { return true; }
   fileselectview.$el.select2('open');
