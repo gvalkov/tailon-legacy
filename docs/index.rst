@@ -14,23 +14,18 @@ the following commands::
 Screenshots
 -----------
 
-.. thumbnail::  select.png
-   :width: 22%
-   :group: screenshots
-   :alt:   Select
-
 .. thumbnail::  tail.png
-   :width: 22%
+   :width: 28%
    :group: screenshots
    :alt:   Tail
 
 .. thumbnail::  grep.png
-   :width: 22%
+   :width: 28%
    :group: screenshots
    :alt:   Tail | Grep
 
 .. thumbnail::  awk.png
-   :width: 22%
+   :width: 28%
    :group: screenshots
    :alt:   Tail | Awk
 
@@ -92,10 +87,10 @@ Tailon's server-side functionality is summarized in the tool's help message::
       -m, --commands [cmd [cmd ...]]  allowed commands (default: tail grep awk)
 
     Example config file:
-      bind: 0.0.0.0:8080      # address and port to bind on
-      allow-transfers: true   # allow file downloads
-      relative-root: /tailon  # web app root path (default: '')
-      commands: [tail, grep, awk] # allowed commands
+      bind: 0.0.0.0:8080           # address and port to bind on
+      allow-transfers: true        # allow file downloads
+      relative-root: /tailon       # web app root path (default: '')
+      commands: [tail, grep, awk]  # allowed commands
 
       files:
         - '/var/log/messages'

@@ -25,7 +25,7 @@ images_config = {
 master_doc = 'index'
 
 project = u'tailon'
-copyright = u'2013-2014, Georgi Valkov'
+copyright = u'2013-2015, Georgi Valkov'
 
 release = kw['version']
 version = release

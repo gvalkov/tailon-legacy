@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8; -*-
 
-'''A simple logfile simulator.'''
+'''Writes log-file-looking lines to files.'''
 
+import os
 import signal
-import os, sys
+import argparse
 
 from time import sleep, time
 from random import choice, randint, seed
@@ -48,7 +49,7 @@ codes = 304, 404, 300, 400, 200
 logfmt = '[{now:%d/%b/%Y:%H:%M:%S %z}] "{method} {path} HTTP/1.1" {status} 0 "{agent}"\n'
 
 
-def generate_logtext():
+def generate_lines():
     while True:
         yield logfmt.format(
             now=dt.now(),
@@ -64,9 +65,9 @@ class LogFile:
         self.update_msec = update_msec
         self.truncate_msec = truncate_msec
         self.rate = rate
-        self.writelock = Lock()
 
-        self.gen = generate_logtext()
+        self.writelock = Lock()
+        self.gen = generate_lines()
         self.fh = open(fn, mode)
 
         self.write_t = Thread()
@@ -141,24 +142,25 @@ class LogFiles:
             i.stop()
 
 
-if __name__ == '__main__':
-    import argparse
-    import daemonize
+def main():
+    def tuple_or_int(value):
+        if ',' in value:
+            return [int(i) for i in value.split(',')]
+        else:
+            return int(value)
 
-    t_or_i = lambda s: [int(i) for i in s.split(',')] if ',' in s else int(s)
+    parser = argparse.ArgumentParser()
+    arg = parser.add_argument
+    arg('--update-msec',   default=1000,  metavar='msec', type=tuple_or_int)
+    arg('--truncate-msec', default=10000, metavar='msec', type=tuple_or_int)
+    arg('--rate',          default=1, metavar='msec', type=tuple_or_int)
+    arg('--daemon',        action='store_true')
+    arg('--pid',           default='/tmp/python-tailon-logsim.pid')
+    arg('--seed',          default=str(time()))
+    arg('action',          choices=['start', 'stop'])
+    arg('files',           nargs=argparse.REMAINDER)
 
-    p = argparse.ArgumentParser()
-    o = p.add_argument
-    o('--update-msec',   default=1000,  type=t_or_i)
-    o('--truncate-msec', default=10000, type=t_or_i)
-    o('--rate',          default=1, type=t_or_i)
-    o('--daemon',        action='store_true')
-    o('--pid',           default='/tmp/python-tailon-logsim.pid')
-    o('--seed',          default=str(time()))
-    o('action',          choices=['start', 'stop'])
-    o('files',           nargs=argparse.REMAINDER)
-
-    opts = p.parse_args()
+    opts = parser.parse_args()
     opts.files = [os.path.abspath(fn) for fn in opts.files]
 
     print('using random seed: %s' % opts.seed)
@@ -173,6 +175,7 @@ if __name__ == '__main__':
             lf.stop()
 
     if opts.daemon:
+        import daemonize
         if opts.action == 'start':
             daemon = daemonize.Daemonize(app='tailon-logsim', pid=opts.pid, action=run)
             daemon.start()
@@ -183,3 +186,7 @@ if __name__ == '__main__':
 
     elif opts.action == 'start':
         run()
+
+
+if __name__ == '__main__':
+    main()
