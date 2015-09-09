@@ -216,6 +216,7 @@ var PanelView = Backbone.View.extend({
 
   toggleConfigurePopup: function() {
     $('#configuration').toggle();
+    $('.toolbar-item .button-group .action-configure').toggleClass('selected');
   }
 });
 

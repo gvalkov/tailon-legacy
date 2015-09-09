@@ -116,6 +116,7 @@ div#modeselect {
 
 .button-group {
   height: 26px;
+  padding-right: 5px;
 
   a {
     @include box-shadow(2px, 2px, 2px, 0px, darken($tailon-toolbar-input-background-color, 10%));
@@ -130,6 +131,10 @@ div#modeselect {
     font-size: 1.5em;
 
     &:hover {
+      @extend .toolbar-hover;
+    }
+
+    &.selected {
       @extend .toolbar-hover;
     }
 
