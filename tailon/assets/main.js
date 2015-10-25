@@ -326,6 +326,8 @@ function Logview(selector, history_lines) {
       return;
     }
 
+    var scroll_after_write = this.is_at_bottom();
+
     for (i=0; i<spans.length; i++) {
       span = spans[i];
       history.push(span);
@@ -333,9 +335,12 @@ function Logview(selector, history_lines) {
     }
 
     container_dom.appendChild(fragment);
-    self.scroll();
     self.trimHistory();
     fragment.innerHTML = '';
+
+    if (auto_scroll && scroll_after_write) {
+      self.scroll();
+    }
 
     if (last_span) {
       last_span.className = last_span_classes;
@@ -356,13 +361,12 @@ function Logview(selector, history_lines) {
   };
 
   this.scroll = function() {
-    if (auto_scroll) {
-      // autoscroll only if div is scrolled within 40px of the bottom
-      auto_scroll_offset = container_dom.scrollTop - (container_dom.scrollHeight - container_dom.offsetHeight);
-      if (Math.abs(auto_scroll_offset) < 40) {
-        container_dom.scrollTop = container_dom.scrollHeight;
-      }
-    }
+    container_dom.scrollTop = container_dom.scrollHeight;
+  };
+
+  this.is_at_bottom = function() {
+    auto_scroll_offset = container_dom.scrollTop - (container_dom.scrollHeight - container_dom.offsetHeight);
+    return Math.abs(auto_scroll_offset) < 50;
   };
 
   this.clear = function() {
