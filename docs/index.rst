@@ -46,6 +46,9 @@ installed with the help of pip:
 
     $ pip install git+git://github.com/gvalkov/tailon.git
 
+Tailon works with Python 2.7 and newer. Using it with Python >= 3.3 is
+encouraged.
+
 
 Quick start
 -----------
