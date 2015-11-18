@@ -70,7 +70,8 @@ var CommandModel = Backbone.Model.extend({
 var UiModel = Backbone.Model.extend({
   defaults: {
     'panel-hidden': false,
-    'history-lines': 2000
+    'history-lines': 2000,
+    'wrap-lines': false
   }
 });
 
@@ -228,12 +229,20 @@ var ConfigurationView = Backbone.View.extend({
     this.render();
   },
 
+  events: {
+    'click #wrap_lines': 'toggleWrapLines'
+  },
+
   historyLinesChanged: function(event) {
     this.model.set({'history-lines': parseInt(event.target.value)});
   },
 
   tailLinesChanged: function(event) {
     this.options.cmdmodel.set({'tail-lines': parseInt(event.target.value)});
+  },
+
+  toggleWrapLines: function(event) {
+    this.model.set({'wrap-lines': event.target.checked});
   },
 
   render: function() {
@@ -261,6 +270,7 @@ var ConfigurationView = Backbone.View.extend({
     // Set the configuration inputs to the model defaults.
     $('#history_lines')[0].value = this.model.get('history-lines');
     $('#tail_lines')[0].value = this.options.cmdmodel.get('tail-lines');
+    $('#wrap_lines').prop('checked', this.model.get('wrap-lines'));
   }
 });
 
@@ -516,6 +526,10 @@ window.cmdmodel.set({'mode': _first_mode});
 window.uimodel.on('change:history-lines', function(model) {
   var lines = model.get('history-lines');
   window.logviewer.history_lines = lines;
+});
+
+window.uimodel.on('change:wrap-lines', function(model) {
+  $('.log-view').toggleClass('log-view-wrapped', window.uimodel.get('wrap-lines'));
 });
 
 // @todo: ...

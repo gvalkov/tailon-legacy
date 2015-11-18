@@ -189,7 +189,6 @@ div#modeselect {
 
   .log-entry {
     display: block;
-    white-space: pre;
   }
 
   .log-entry-current {
@@ -203,6 +202,13 @@ div#modeselect {
     font-weight: bold;
   }
 }
+
+.log-view-wrapped {
+  word-break: break-all;
+  white-space: normal;
+  width: 100%;
+}
+
 
 .log-view ::-moz-selection {@include selected-placeholder();}
 .log-view ::selection {@include selected-placeholder();}
@@ -260,10 +266,11 @@ input:-ms-input-placeholder {@include input-placeholder();}
     border: none;
   }
 
-  input[type="number"] {
+  input {
     margin-left: 20px;
     border: none;
     width: 80px;
     text-align: right;
+    vertical-align: middle;
   }
 }
