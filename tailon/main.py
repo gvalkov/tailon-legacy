@@ -14,8 +14,10 @@ import pkg_resources
 
 from tornado import ioloop, httpserver
 
-from . import argparse, version
-from . server import Application, Commands
+from . import argparse
+from . import version
+from . import server
+from . import utils
 
 
 #-----------------------------------------------------------------------------
@@ -108,17 +110,19 @@ def parseopts(args=None):
         - '/var/log/messages'
         - '/var/log/nginx/*.log'
         - '/var/log/xorg.[0-10].log'
+        - '/var/log/nginx/'   # all files in a directory
         - 'cron':             # it's possible to add sub-sections
             - '/var/log/cron*'
 
     Example command-line:
       tailon -f /var/log/messages /var/log/debug -m tail
       tailon -f '/var/log/cron*' -a -b localhost:8080
+      tailon -f
       tailon -c config.yaml -d
     '''
 
     parser = argparse.ArgumentParser(
-        formatter_class=CompactHelpFormatter,
+        formatter_class=utils.CompactHelpFormatter,
         description=textwrap.dedent(description),
         epilog=textwrap.dedent(epilog),
         add_help=False
@@ -144,7 +148,7 @@ def parseopts(args=None):
     arg('-a', '--allow-transfers', action='store_true', help='allow log file downloads')
 
     arg('-m', '--commands', nargs='*', metavar='cmd',
-        choices=Commands.names, default=['tail', 'grep', 'awk'],
+        choices=server.Commands.names, default=['tail', 'grep', 'awk'],
         help='allowed commands (default: tail grep awk)')
 
     return parser, parser.parse_args(args)
@@ -205,9 +209,9 @@ def main(argv=sys.argv):
         print('Error: none of the given files exist or are readable.', file=sys.stderr)
         sys.exit(1)
 
-    application = Application(config, {}, template_dir, assets_dir)
-    server = httpserver.HTTPServer(application)
-    server.listen(config['port'], config['addr'])
+    application = server.Application(config, {}, template_dir, assets_dir)
+    httpd = httpserver.HTTPServer(application)
+    httpd.listen(config['port'], config['addr'])
 
     log.debug('Config:\n%s', pprint.pformat(config))
     log.debug('Files:\n%s',  pprint.pformat(dict(config['files'])))
@@ -216,27 +220,6 @@ def main(argv=sys.argv):
     msg = 'Listening on %s:%s' % (config['addr'], config['port'])
     loop.add_callback(log.info, msg)
     loop.start()
-
-#-----------------------------------------------------------------------------
-class CompactHelpFormatter(argparse.RawTextHelpFormatter):
-    def __init__(self, *args, **kw):
-        super(CompactHelpFormatter, self).__init__(*args, max_help_position=35, **kw)
-
-    def _format_usage(self, *args, **kw):
-        usage = super(CompactHelpFormatter, self)._format_usage(*args, **kw)
-        return usage.capitalize()
-
-    def _format_action_invocation(self, action):
-        if not action.option_strings:
-            default = self._get_default_metavar_for_positional(action)
-            metavar, = self._metavar_formatter(action, default)(1)
-            return metavar
-        else:
-            res = ', '.join(action.option_strings)
-            default = self._get_default_metavar_for_optional(action)
-            args_string = self._format_args(action, default)
-            res = '%s %s' % (res, args_string)
-            return res
 
 
 if __name__ == '__main__':
