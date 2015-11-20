@@ -128,34 +128,23 @@ class Files(BaseHandler):
         self.write(json_encode(res))
 
 
-class Fetch(BaseHandler):
-    def error(self, code, msg):
-        self.set_header('Content-Type', 'text/html')
-        self.set_status(500)
+class Fetch(BaseHandler, web.StaticFileHandler):
+    def should_return_304(self):
+        pass
 
-        html = (
-            '<html>'
-            '<title>{code:d}: {message}</title>'
-            '<body><tt>{code:d}: {message}</tt></body>'
-            '</html>'
-        )
-        self.finish(html.format(code=code, message=msg))
+    def set_etag_header(self):
+        pass
 
-    def get(self, path):
+    def validate_absolute_path(self, root, absolute_path):
         if not self.config['allow-transfers']:
-            self.error(500, 'transfers not allowed')
-            return
+            raise web.HTTPError(403, 'transfers not allowed')
 
         all_files = {i for values in self.config['files'].values() for i in values}
-        if path not in all_files:
-            self.error(404, 'file not found')
-            return
+        if absolute_path not in all_files:
+            raise web.HTTPError(404)
 
-        # basename = os.path.basename(path)
-        # self.set_header('Content-Disposition', 'attachment; filename="%s"' % path+'asdf');
-        self.set_header('Content-Type', 'text/plain')
-        with open(path) as fh:
-            self.write(fh.read())  # todo: stream
+        absolute_path = super(Fetch, self).validate_absolute_path(root, absolute_path)
+        return absolute_path
 
 
 class WebsocketCommands(SockJSConnection):
@@ -289,8 +278,8 @@ class Application(web.Application):
 
         routes = [
             [r'/assets/(.*)', web.StaticFileHandler, {'path': pjoin(self.here, 'assets/')}],
-            [r'/files', Files],  # @todo: Not used.
-            [r'/fetch/(.*)', Fetch],
+            [r'/files', Files],
+            [r'/fetch/(.*)', Fetch, {'path': '/'}],
             [r'/', Index],
         ]
 
