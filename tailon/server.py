@@ -1,16 +1,16 @@
 # -*- coding: utf-8; -*-
 
-import os
 import logging
 
 from functools import partial
-from os.path import dirname, getsize, getmtime, join as pjoin
+from os.path import dirname, join as pjoin
 from subprocess import PIPE
 
 from tornado import web, ioloop
 from tornado.escape import json_encode, json_decode
 from tornado.process import Subprocess
 from sockjs.tornado import SockJSRouter, SockJSConnection
+
 
 STREAM = Subprocess.STREAM
 log = logging.getLogger('logtail')
@@ -93,17 +93,13 @@ class BaseHandler(web.RequestHandler):
         super(BaseHandler, self).__init__(*args, **kw)
         self.config = self.application.config
         self.client_config = self.application.client_config
+        self.file_lister = self.application.file_lister
 
 
 class Index(BaseHandler):
     def get(self):
-        files = self.config['files']
-        files = {name: Files.statfiles(lst) for name, lst in files.items()}
-        root = self.config['relative-root']
-
         ctx = {
-            'root':  root,
-            'files': files,
+            'root': self.config['relative-root'],
             'commands': self.config['commands'],
             'client_config': json_encode(self.client_config),
         }
@@ -112,20 +108,11 @@ class Index(BaseHandler):
 
 
 class Files(BaseHandler):
-    @staticmethod
-    def statfiles(files):
-        for fn in files:
-            if not os.access(fn, os.R_OK):
-                continue
-            yield fn, getsize(fn), getmtime(fn)
-
     def get(self):
-        # @todo: Use this instead of the template.
-        files = self.config['files']['__ungrouped__']
-        files = Files.statfiles(files)
-        res = {'files': list(files)}
+        self.file_lister.refresh()
+        self.set_header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
         self.set_header('Content-Type', 'application/json')
-        self.write(json_encode(res))
+        self.write(json_encode(self.file_lister.files))
 
 
 class Fetch(BaseHandler, web.StaticFileHandler):
@@ -139,8 +126,7 @@ class Fetch(BaseHandler, web.StaticFileHandler):
         if not self.config['allow-transfers']:
             raise web.HTTPError(403, 'transfers not allowed')
 
-        all_files = {i for values in self.config['files'].values() for i in values}
-        if absolute_path not in all_files:
+        if not self.file_lister.is_path_allowed(absolute_path):
             raise web.HTTPError(404)
 
         absolute_path = super(Fetch, self).validate_absolute_path(root, absolute_path)
@@ -152,6 +138,7 @@ class WebsocketCommands(SockJSConnection):
         super(WebsocketCommands, self).__init__(*args, **kw)
 
         self.config = self.application.config
+        self.file_lister = self.application.file_lister
         self.cmd = Commands()
         self.connected = True
         self.tail = None
@@ -183,7 +170,7 @@ class WebsocketCommands(SockJSConnection):
         self.wjson(msg)
 
     def killall(self):
-        for i in 'tail', 'awk', 'grep', 'sed':
+        for i in ('tail', 'awk', 'grep', 'sed'):
             var = getattr(self, i)
             if var:
                 log.debug('killing %s process: %s', i, var.pid)
@@ -192,71 +179,67 @@ class WebsocketCommands(SockJSConnection):
                 var.proc.kill()
                 var = None
 
-    def file_exists(self, fn):
-        all_files = {i for values in self.config['files'].values() for i in values}
-        return fn in all_files
-
     def on_message(self, message):
-        msg = json_decode(message)
-        cmds = self.config['commands']
-        log.debug('received message: %s', msg)
+        command = json_decode(message)
+        allowed_commands = self.config['commands']
+        log.debug('received message: %r', command)
+
+        if not set(command.keys()) <= {'mode', 'path', 'tail-lines', 'script'}:
+            log.warn('invalid message received: %r', command)
+            return
+
+        if command['mode'] not in allowed_commands:
+            log.warn('disallowed command: %r', command['mode'])
+            return
+
+        path = command['path']
+        if not self.file_lister.is_path_allowed(path):
+            log.warn('request to unlisted file: %r', path)
+            return
 
         self.killall()
 
-        if 'tail' in msg and 'tail' in cmds:
-            fn = msg['tail']
+        if 'tail' == command['mode']:
+            n = command.get('tail-lines', 10)
+            self.tail = self.cmd.tail(n, path, STREAM, STREAM)
 
-            if self.file_exists(fn):
-                n = msg.get('tail-lines', 10)
-                self.tail = self.cmd.tail(n, fn, STREAM, STREAM)
+            outcb = partial(self.stdout_callback, path, self.tail.stdout)
+            errcb = partial(self.stderr_callback, path, self.tail.stderr)
+            self.tail.stdout.read_until_close(outcb, outcb)
+            self.tail.stderr.read_until_close(errcb, errcb)
 
-                outcb = partial(self.stdout_callback, fn, self.tail.stdout)
-                errcb = partial(self.stderr_callback, fn, self.tail.stderr)
-                self.tail.stdout.read_until_close(outcb, outcb)
-                self.tail.stderr.read_until_close(errcb, errcb)
+        elif 'grep' == command['mode']:
+            n = command.get('tail-lines', 10)
+            regex = command.get('script', '.*')
 
-        elif 'grep' in msg and 'grep' in cmds:
-            fn = msg['grep']
-            if self.file_exists(fn):
-                n = msg.get('tail-lines', 10)
-                regex = msg.get('script', '.*')
+            self.tail, self.grep = self.cmd.tail_grep(n, path, regex, STREAM, STREAM)
 
-                # self.tail, self.grep = self.cmd.tail_grep2(n, fn, regex)
-                self.tail, self.grep = self.cmd.tail_grep(n, fn, regex, STREAM, STREAM)
+            outcb = partial(self.stdout_callback, path, self.grep.stdout)
+            errcb = partial(self.stderr_callback, path, self.grep.stderr)
+            self.grep.stdout.read_until_close(outcb, outcb)
+            self.grep.stderr.read_until_close(errcb, errcb)
 
-                outcb = partial(self.stdout_callback, fn, self.grep.stdout)
-                errcb = partial(self.stderr_callback, fn, self.grep.stderr)
-                # self.tail.stderr.read_until_close(errcb, errcb)
-                self.grep.stdout.read_until_close(outcb, outcb)
-                self.grep.stderr.read_until_close(errcb, errcb)
+        elif 'awk' in command['mode']:
+            n = command.get('tail-lines', 10)
+            script = command.get('script', '{print $0}')
 
-        elif 'awk' in msg and 'awk' in cmds:
-            fn = msg['awk']
-            if self.file_exists(fn):
-                n = msg.get('tail-lines', 10)
-                script = msg.get('script', '{print $0}')
+            self.tail, self.awk = self.cmd.tail_awk(n, path, script, STREAM, STREAM)
 
-                self.tail, self.awk = self.cmd.tail_awk(n, fn, script, STREAM, STREAM)
+            outcb = partial(self.stdout_callback, path, self.awk.stdout)
+            errcb = partial(self.stderr_callback, path, self.awk.stderr)
+            self.awk.stdout.read_until_close(outcb, outcb)
+            self.awk.stderr.read_until_close(errcb, errcb)
 
-                outcb = partial(self.stdout_callback, fn, self.awk.stdout)
-                errcb = partial(self.stderr_callback, fn, self.awk.stderr)
-                # self.tail.stderr.read_until_close(errcb, errcb)
-                self.awk.stdout.read_until_close(outcb, outcb)
-                self.awk.stderr.read_until_close(errcb, errcb)
+        elif 'sed' == command['mode']:
+            n = command.get('tail-lines', 10)
+            script = command.get('script', 's|.*|&|')
 
-        elif 'sed' in msg and 'sed' in cmds:
-            fn = msg['sed']
-            if self.file_exists(fn):
-                n = msg.get('tail-lines', 10)
-                script = msg.get('script', 's|.*|&|')
+            self.tail, self.sed = self.cmd.tail_sed(n, path, script, STREAM, STREAM)
 
-                self.tail, self.sed = self.cmd.tail_sed(n, fn, script, STREAM, STREAM)
-
-                outcb = partial(self.stdout_callback, fn, self.sed.stdout)
-                errcb = partial(self.stderr_callback, fn, self.sed.stderr)
-                # self.tail.stderr.read_until_close(errcb, errcb)
-                self.sed.stdout.read_until_close(outcb, outcb)
-                self.sed.stderr.read_until_close(errcb, errcb)
+            outcb = partial(self.stdout_callback, path, self.sed.stdout)
+            errcb = partial(self.stderr_callback, path, self.sed.stderr)
+            self.sed.stdout.read_until_close(outcb, outcb)
+            self.sed.stderr.read_until_close(errcb, errcb)
 
     def on_close(self):
         self.killall()
@@ -271,7 +254,7 @@ class WebsocketCommands(SockJSConnection):
 class Application(web.Application):
     here = dirname(__file__)
 
-    def __init__(self, config, client_config={}, template_dir=None, assets_dir=None):
+    def __init__(self, config, client_config, file_lister, template_dir=None, assets_dir=None):
         prefix = config['relative-root']
         wsroutes = SockJSRouter(WebsocketCommands, pjoin('/', prefix, 'ws'))
         WebsocketCommands.application = self
@@ -289,9 +272,6 @@ class Application(web.Application):
             routes[n] = tuple(route)
 
         routes += wsroutes.urls
-
-        # import pprint
-        # log.debug('routes:\n%s', pprint.pformat(routes))
 
         if not template_dir:
             pjoin(self.here, 'tailon/templates')
@@ -311,3 +291,4 @@ class Application(web.Application):
         super(Application, self).__init__(routes, **settings)
         self.config = config
         self.client_config = client_config
+        self.file_lister = file_lister

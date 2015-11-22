@@ -82,6 +82,8 @@ var UiModel = Backbone.Model.extend({
 var ModeSelectView = Backbone.View.extend({
   initialize: function() {
     this.render();
+    var _first_mode = $('#modeselect > select')[0].options[0].value;
+    window.cmdmodel.set({'mode': _first_mode});
   },
 
   events: {
@@ -102,7 +104,20 @@ var ModeSelectView = Backbone.View.extend({
 //----------------------------------------------------------------------------
 var FileSelectView = Backbone.View.extend({
   initialize: function() {
+    _.bindAll(this, 'updateSelect', 'listFilesSuccess');
     this.render();
+    this.updateSelect();
+
+    // Set the file to the first option in the select element.
+    var _first_value = Object.keys(this.select.options)[0];
+    this.model.set({'file': _first_value});
+    this.select.setValue(_first_value);
+
+    // If there are directories in config['files'], we need to refresh
+    // the file list every time the select item is focused.
+    if (window.client_config['refresh_filelist']) {
+      this.select.on('focus', this.updateSelect)
+    }
   },
 
   events: {
@@ -113,11 +128,48 @@ var FileSelectView = Backbone.View.extend({
     this.model.set({'file': event.target.value});
   },
 
-  render: function() {
-    this.$el.selectize({
-      highlight: false,
-      selectOnTab: true
+  listFilesSuccess: function(result) {
+    var multiple_groups = (result.length > 1);
+    var groups = Object.keys(result);
+
+    for (var i=0; i<groups.length; i++) {
+      var group_name = groups[i];
+      this.select.addOptionGroup(group_name, {
+        'value': group_name,
+        'label': group_name
+      });
+
+      for (var j=0; j<result[group_name].length; j++) {
+        this.select.addOption({
+          value: result[group_name][j][0],
+          text:  result[group_name][j][0],
+          size:  result[group_name][j][1],
+          mtime: result[group_name][j][2],
+          group: multiple_groups ? group_name : null
+        });
+      }
+    }
+  },
+
+  updateSelect: function() {
+    this.select.clearOptions();
+    this.select.clearOptionGroups();
+
+    $.ajax({
+      url: 'files',
+      type: 'GET',
+      async: false,
+      success: this.listFilesSuccess
     });
+  },
+
+  render: function() {
+    this.select = this.$el.selectize({
+      highlight: false,
+      selectOnTab: true,
+      optgroupField: 'group'
+    })[0].selectize;
+
     return this;
   }
 });
@@ -457,31 +509,34 @@ function onMessage(e) {
 }
 
 function wscommand(model) {
-  var fn = model.get('file')
+  var path = model.get('file')
     , mode = model.get('mode')
     , script = model.get('script');
 
+  if (path === null || path === '') {
+    return;
+  }
+
   (function() {
     if (window.connected) {
-      if (fn === null) {
+      if (path === null) {
         window.logviewer.clear();
         return;
       }
 
-      var msg = {};
-      msg[mode] = fn;
-      msg['tail-lines'] = model.get('tail-lines');
+      var command = {
+        'mode': mode,
+        'path': path,
+        'script': script,
+        'tail-lines': model.get('tail-lines')
+      };
 
-      if (mode != 'tail') {
-        if (!script) {
-          return;
-        } else {
-          msg['script'] = script;
-        }
+      if (mode != 'tail' && !script) {
+        return;
       }
 
       window.logviewer.clear();
-      window.socket.send(JSON.stringify(msg));
+      window.socket.send(JSON.stringify(command));
     } else {
       window.setTimeout(arguments.callee, 20);
     }
@@ -509,18 +564,12 @@ window.cmdmodel.on('change', function(model) {
 });
 
 // Views.
-window.fileselectview = new FileSelectView({model: window.cmdmodel, el: '#logselect  > select'});
 window.modeselectview = new ModeSelectView({model: window.cmdmodel, el: '#modeselect > select'});
+window.fileselectview = new FileSelectView({model: window.cmdmodel, el: '#logselect  > select'});
 window.scriptview  = new ScriptView({model:  window.cmdmodel, el: '#scriptinput input'});
 window.actionsview = new ActionsView({model: window.uimodel,  el: '.quickbar .button-group'});
 window.buttonsview = new PanelView({model:   window.uimodel, cmdmodel: window.cmdmodel, el: '.toolbar'});
 window.configview  = new ConfigurationView({model: window.uimodel, cmdmodel: window.cmdmodel, el: '#configuration'});
-
-// Set the mode and logfile to the first option from the select element.
-var _first_logfile = $('#logselect  > select')[0].options[0].value;
-var _first_mode    = $('#modeselect > select')[0].options[0].value;
-window.cmdmodel.set({'file': _first_logfile});
-window.cmdmodel.set({'mode': _first_mode});
 
 //
 window.uimodel.on('change:history-lines', function(model) {

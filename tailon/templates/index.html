@@ -32,22 +32,6 @@
   <div class='toolbar'>
     <div class='toolbar-item' id='logselect'>
       <select tabindex='1'>
-        {# ----------------------------------- #}
-        {% if files.keys() == {'__ungrouped__'} %}
-          {% for fn in files['__ungrouped__'] %}
-          <option data-size="{{fn[1]}}" data-mtime="{{fn[2]}}" value="{{fn[0]}}">{{fn[0]}}</option>
-          {% end %}
-        {# ----------------------------------- #}
-        {% else %}
-          {% for group, lst in files.items() %}
-          {% set group = group if group != '__ungrouped__' else 'ungrouped' %}
-          <optgroup label="{{group}}">
-            {% for fn in lst %}
-            <option data-size="{{fn[1]}}" data-mtime="{{fn[2]}}" value="{{fn[0]}}">{{fn[0]}}</option>
-            {% end %}
-          </optgroup>
-          {% end %}
-        {% end %}
       </select>
     </div>
 
@@ -100,13 +84,13 @@
   </div>
 
   <script>
-    var config = {{client_config}};
+    var client_config = {% raw client_config %};
     var relativeRoot = '{{root}}';
   </script>
 
   <!-- WEBASSETS JS -->
   <script src='{{root}}assets/gen/3rdparty.js?4fe302a0'></script>
-  <script src='{{root}}assets/gen/main.js?f7221e0d'></script>
+  <script src='{{root}}assets/gen/main.js?25275ba3'></script>
   <!-- WEBASSETS JS -->
 
 </body>

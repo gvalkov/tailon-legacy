@@ -76,19 +76,16 @@ def parseconfig(cfg):
     files['__ungrouped__'] = []
 
     def helper(el, group='__ungrouped__', indict=False):
-        for i in el:
-            if isinstance(i, dict):
+        for paths_or_group in el:
+            if isinstance(paths_or_group, dict):
                 if indict:
                     raise Exception('more than two sub-levels under "files"')
-                name, j = list(i.items())[0]
-                helper(j, name, True)
+                group_name, j = list(paths_or_group.items())[0]
+                helper(j, group_name, True)
                 continue
-            for fn in glob.glob(i):
-                if not os.access(fn, os.R_OK):
-                    log.info('skipping unreadable file: %s', fn)
-                    continue
+            for path in glob.glob(paths_or_group):
                 d = files.setdefault(group, [])
-                d.append(fn)
+                d.append(path)
 
     helper(raw_config['files'])
     return config
@@ -110,14 +107,14 @@ def parseopts(args=None):
         - '/var/log/messages'
         - '/var/log/nginx/*.log'
         - '/var/log/xorg.[0-10].log'
-        - '/var/log/nginx/'   # all files in a directory
+        - '/var/log/nginx/'   # all files in this directory
         - 'cron':             # it's possible to add sub-sections
             - '/var/log/cron*'
 
     Example command-line:
       tailon -f /var/log/messages /var/log/debug -m tail
       tailon -f '/var/log/cron*' -a -b localhost:8080
-      tailon -f
+      tailon -f /var/log/
       tailon -c config.yaml -d
     '''
 
@@ -170,14 +167,11 @@ def setup(opts):
         'debug': opts.__dict__.get('debug', False),
     }
 
-    for fn in opts.files:
-        for fn in glob.glob(fn):
-            if not os.access(fn, os.R_OK):
-                log.warn('skipping unreadable file: %s', fn)
-                continue
-            if fn.startswith('./'):
-                fn = fn.lstrip('./')
-            config['files']['__ungrouped__'].append(fn)
+    for entry in opts.files:
+        for path in glob.glob(entry):
+            if path.startswith('./'):
+                path = path.replace('./', '', 1)
+            config['files']['__ungrouped__'].append(path)
 
     return config
 
@@ -203,13 +197,20 @@ def main(argv=sys.argv):
         template_dir, assets_dir = None, None
 
     config = setup(opts)
+    client_config = {}
+    file_lister = utils.FileLister(config['files'], True)
 
-    all_files = {i for values in config['files'].values() for i in values}
-    if not all_files:
-        print('Error: none of the given files exist or are readable.', file=sys.stderr)
+    # If there is at least one directory in path, we instruct the client to
+    # refresh the filelist every time the file select element is focused.
+    client_config['refresh_filelist'] = bool(file_lister.all_dir_names)
+
+    # TODO: Need to handle situations in which only readable, empty
+    # directories were given.
+    if not file_lister.all_file_names:
+        print('Error: none of the given files or directories exist or are readable.', file=sys.stderr)
         sys.exit(1)
 
-    application = server.Application(config, {}, template_dir, assets_dir)
+    application = server.Application(config, client_config, file_lister, template_dir, assets_dir)
     httpd = httpserver.HTTPServer(application)
     httpd.listen(config['port'], config['addr'])
 

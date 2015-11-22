@@ -1,6 +1,11 @@
 # -*- coding: utf-8; -*-
 
+import os
+import logging
 import argparse
+import collections
+
+log = logging.getLogger('logtail')
 
 
 class CompactHelpFormatter(argparse.RawTextHelpFormatter):
@@ -22,3 +27,62 @@ class CompactHelpFormatter(argparse.RawTextHelpFormatter):
             args_string = self._format_args(action, default)
             res = '%s %s' % (res, args_string)
             return res
+
+
+class FileLister:
+    def __init__(self, groups, use_directory_cache=True):
+        self.groups = groups
+        self.use_directory_cache = use_directory_cache
+        self.directory_cache = {}
+        self.directory_mtime = {}
+
+        self.files = collections.OrderedDict()
+        self.all_file_names = set()
+        self.all_dir_names = set()
+        self.refresh()
+
+    def listdir(self, path):
+        if not self.use_directory_cache:
+            return listdir_abspath(path)
+
+        mtime = os.stat(path).st_mtime
+        if mtime > self.directory_mtime.get(path, 0):
+            files = listdir_abspath(path)
+            self.directory_cache[path] = files
+            self.directory_mtime[path] = mtime
+        return self.directory_cache[path]
+
+    def is_path_allowed(self, path):
+        return path in self.all_file_names
+
+    def refresh(self):
+        log.debug('listing files')
+        self.files = collections.OrderedDict()
+        self.all_dir_names = set()
+
+        for group, paths in self.groups.items():
+            files = self.files.setdefault(group, [])
+            for path in paths:
+                if os.path.isdir(path):
+                    self.all_dir_names.add(path)
+                    files.extend(self.listdir(path))
+                else:
+                    files.append(path)
+            self.files[group] = list(statfiles(files))
+
+        self.all_file_names = {i[0] for values in self.files.values() for i in values}
+
+
+def listdir_abspath(path, files_only=True):
+    paths = [os.path.join(path, i) for i in os.listdir(path)]
+    if not files_only:
+        return paths
+    return [path for path in paths if os.path.isfile(path)]
+
+
+def statfiles(files):
+    for path in files:
+        if not os.access(path, os.R_OK):
+            continue
+        st = os.stat(path)
+        yield path, st.st_size, st.st_mtime
