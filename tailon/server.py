@@ -1,18 +1,16 @@
 # -*- coding: utf-8; -*-
 
+import os
 import logging
+import subprocess
 
 from functools import partial
-from os.path import dirname, join as pjoin
-from subprocess import PIPE
 
-from tornado import web, ioloop
-from tornado.escape import json_encode, json_decode
-from tornado.process import Subprocess
+from tornado import web, ioloop, process, escape
 from sockjs.tornado import SockJSRouter, SockJSConnection
 
 
-STREAM = Subprocess.STREAM
+STREAM = process.Subprocess.STREAM
 log = logging.getLogger('logtail')
 io_loop = ioloop.IOLoop.instance()
 
@@ -34,7 +32,7 @@ class Commands:
         cmd = [self.awkexe, '--sandbox', script]
         if fn:
             cmd.append(fn)
-        p = Subprocess(cmd, stdout=stdout, stderr=stderr, **kw)
+        p = process.Subprocess(cmd, stdout=stdout, stderr=stderr, **kw)
         log.debug('running awk %s, pid: %s', cmd, p.proc.pid)
         return p
 
@@ -42,7 +40,7 @@ class Commands:
         cmd = [self.grepexe, '--text', '--line-buffered', '--color=never', '-e', regex]
         if fn:
             cmd.append(fn)
-        p = Subprocess(cmd, stdout=stdout, stderr=stderr, **kw)
+        p = process.Subprocess(cmd, stdout=stdout, stderr=stderr, **kw)
         log.debug('running grep %s, pid: %s', cmd, p.proc.pid)
         return p
 
@@ -50,19 +48,19 @@ class Commands:
         cmd = [self.sedexe, '-u', '-e', script]
         if fn:
             cmd.append(fn)
-        p = Subprocess(cmd, stdout=stdout, stderr=stderr, **kw)
+        p = process.Subprocess(cmd, stdout=stdout, stderr=stderr, **kw)
         log.debug('running sed %s, pid: %s', cmd, p.proc.pid)
         return p
 
     def tail_unix(self, n, fn, stdout, stderr, **kw):
         cmd = [self.tailexe, '-n', str(n), '-f', fn]
-        p = Subprocess(cmd, stdout=stdout, stderr=stderr, **kw)
+        p = process.Subprocess(cmd, stdout=stdout, stderr=stderr, **kw)
         log.debug('running tail %s, pid: %s', cmd, p.proc.pid)
         return p
 
     def tail_powershell(self, n, fn, stdout, stderr, **kw):
         cmd = [self.tailexe, '-n', str(n), '-f', fn]
-        p = Subprocess(cmd, stdout=stdout, stderr=stderr, **kw)
+        p = process.Subprocess(cmd, stdout=stdout, stderr=stderr, **kw)
         log.debug('running tail %s, pid: %s', cmd, p.proc.pid)
         return p
 
@@ -70,18 +68,18 @@ class Commands:
     tail = tail_unix
 
     def tail_awk(self, n, fn, script, stdout, stderr):
-        tail = self.tail(n, fn, stdout=PIPE, stderr=STREAM)
+        tail = self.tail(n, fn, stdout=subprocess.PIPE, stderr=STREAM)
         awk = self.awk(script, None, stdout=STREAM, stderr=STREAM, stdin=tail.stdout)
         return tail, awk
 
     def tail_grep(self, n, fn, regex, stdout, stderr):
-        tail = self.tail(n, fn, stdout=PIPE, stderr=STREAM)
+        tail = self.tail(n, fn, stdout=subprocess.PIPE, stderr=STREAM)
         grep = self.grep(regex, None, stdout=STREAM, stderr=STREAM, stdin=tail.stdout)
         tail.stdout.close()
         return tail, grep
 
     def tail_sed(self, n, fn, script, stdout, stderr):
-        tail = self.tail(n, fn, stdout=PIPE, stderr=STREAM)
+        tail = self.tail(n, fn, stdout=subprocess.PIPE, stderr=STREAM)
         sed = self.sed(script, None, stdout=STREAM, stderr=STREAM, stdin=tail.stdout)
         tail.stdout.close()
         return tail, sed
@@ -101,7 +99,7 @@ class Index(BaseHandler):
         ctx = {
             'root': self.config['relative-root'],
             'commands': self.config['commands'],
-            'client_config': json_encode(self.client_config),
+            'client_config': escape.json_encode(self.client_config),
         }
 
         self.render('index.html', **ctx)
@@ -112,7 +110,7 @@ class Files(BaseHandler):
         self.file_lister.refresh()
         self.set_header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
         self.set_header('Content-Type', 'application/json')
-        self.write(json_encode(self.file_lister.files))
+        self.write(escape.json_encode(self.file_lister.files))
 
 
 class Fetch(BaseHandler, web.StaticFileHandler):
@@ -180,7 +178,7 @@ class WebsocketCommands(SockJSConnection):
                 var = None
 
     def on_message(self, message):
-        command = json_decode(message)
+        command = escape.json_decode(message)
         allowed_commands = self.config['commands']
         log.debug('received message: %r', command)
 
@@ -247,20 +245,20 @@ class WebsocketCommands(SockJSConnection):
         log.debug('connection closed')
 
     def wjson(self, data):
-        return self.send(json_encode(data))
+        return self.send(escape.json_encode(data))
 
 
 #-----------------------------------------------------------------------------
 class Application(web.Application):
-    here = dirname(__file__)
+    here = os.path.dirname(__file__)
 
     def __init__(self, config, client_config, file_lister, template_dir=None, assets_dir=None):
         prefix = config['relative-root']
-        wsroutes = SockJSRouter(WebsocketCommands, pjoin('/', prefix, 'ws'))
+        wsroutes = SockJSRouter(WebsocketCommands, os.path.join('/', prefix, 'ws'))
         WebsocketCommands.application = self
 
         routes = [
-            [r'/assets/(.*)', web.StaticFileHandler, {'path': pjoin(self.here, 'assets/')}],
+            [r'/assets/(.*)', web.StaticFileHandler, {'path': os.path.join(self.here, 'assets/')}],
             [r'/files', Files],
             [r'/fetch/(.*)', Fetch, {'path': '/'}],
             [r'/', Index],
@@ -268,16 +266,16 @@ class Application(web.Application):
 
         # Tornado is pretentious about routes being a list of tuples.
         for n, route in enumerate(routes):
-            route[0] = pjoin('/', prefix, route[0].lstrip('/'))
+            route[0] = os.path.join('/', prefix, route[0].lstrip('/'))
             routes[n] = tuple(route)
 
         routes += wsroutes.urls
 
         if not template_dir:
-            pjoin(self.here, 'tailon/templates')
+            os.path.join(self.here, 'tailon/templates')
 
         if not assets_dir:
-            pjoin(self.here, 'talon/assets')
+            os.path.join(self.here, 'talon/assets')
 
         log.debug('template dir: %s', template_dir)
         log.debug('static dir: %s', assets_dir)
