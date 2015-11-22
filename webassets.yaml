@@ -5,6 +5,8 @@ url_expire: false
 debug: true
 config:
     debug_info: false
+    # Path is relative to tailon/assets/scss.
+    autoprefixer_bin: ../../../node_modules/postcss-cli/bin/postcss
 
 bundles:
   external-js:
@@ -47,7 +49,7 @@ bundles:
       - main.js
 
   internal-css:
-    filters: pyscss,cssmin
+    filters: pyscss,autoprefixer6,cssmin
     output:  gen/main.css
     depends:
       - scss/vars.scss

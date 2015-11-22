@@ -1,5 +1,4 @@
 @import 'vars.scss';
-@import 'utils.scss';
 @import 'base.scss';
 
 body {
@@ -18,35 +17,26 @@ body {
   padding-right: 5px;
   height: 30px;
 
-  -webkit-box-direction: normal;
-  -moz-box-direction: normal;
-  -webkit-box-orient: horizontal;
-  -moz-box-orient: horizontal;
-
-  @include display-flex();
-  @include flex-direction(row);
-  @include flex-wrap(nowrap);
-
-  -webkit-box-pack: start;
-  -moz-box-pack: start;
-  -webkit-justify-content: flex-start;
-  -ms-flex-pack: start;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
   justify-content: flex-start;
 
-  @include align-content(stretch);
-  @include align-items(center);
+  align-content: stretch;
+  align-items: center;
 }
 
 .toolbar-item {
-  height: 100%;
+  /* height: 100%; */
+  height: 26px;
   padding-right: 5px;
-  @include order(0);
-  @include flex(0, 0, auto);
-  @include align-self(flex-start);
+  flex: 0 0 auto;
+  order: 0;
+  align-self: flex-start;
 }
 
 .toolbar-item-fill {
-  @include flex(1, 0, auto);
+  flex: 1 0 auto;
 }
 
 div#logselect {
@@ -58,8 +48,8 @@ div#modeselect {
 }
 
 #scriptinput {
-  @include box-sizing(border-box);
-  @include box-shadow(2px, 2px, 2px, 0px, darken($tailon-toolbar-input-background-color, 10%));
+  box-sizing: border-box;
+  box-shadow: 2px 2px 2px 0px darken($tailon-toolbar-input-background-color, 10%);
 
   height: 26px;
 
@@ -102,7 +92,7 @@ div#modeselect {
   background: $tailon-toolbar-input-background-color;
   border: 0;
   border-radius: 0;
-  @include box-sizing(border-box);
+  box-sizing: border-box;
 }
 
 .toolbar-hover {
@@ -119,7 +109,7 @@ div#modeselect {
   padding-right: 5px;
 
   a {
-    @include box-shadow(2px, 2px, 2px, 0px, darken($tailon-toolbar-input-background-color, 10%));
+    box-shadow: 2px 2px 2px 0px darken($tailon-toolbar-input-background-color, 10%);
     @extend .toolbar-widget;
 
     float: left;
@@ -153,20 +143,10 @@ div#modeselect {
   right: 5px;
 }
 
-@mixin input-placeholder() {
-  color: #c5c8c6;
-  font-style: italic;
-  text-align: center;
-}
-
 @mixin selected-placeholder($color: $tailon-toolbar-input-background-color) {
   background: $color;
   text-shadow: none;
 }
-
-/* .select-container { */
-/*   @include box-shadow(2px, 2px, 2px, 0px, darken(#373b41, 10%)); */
-/* } */
 
 
 //----------------------------------------------------------------------------
@@ -210,23 +190,20 @@ div#modeselect {
 }
 
 
-.log-view ::-moz-selection {@include selected-placeholder();}
-.log-view ::selection {@include selected-placeholder();}
-
-input::-moz-selection {
-  @include selected-placeholder(darken(#373b41, 40%));
-  color: white;
+.log-view ::selection {
+  @include selected-placeholder();
 }
+
 input::selection {
   @include selected-placeholder(darken(#373b41, 40%));
   color: white;
 }
 
-input::-webkit-input-placeholder {@include input-placeholder();}
-input:-moz-placeholder {@include input-placeholder();}
-input::-moz-placeholder {@include input-placeholder();}
-input:-ms-input-placeholder {@include input-placeholder();}
-
+input::placeholder {
+  color: #c5c8c6;
+  font-style: italic;
+  text-align: center;
+}
 
 //----------------------------------------------------------------------------
 // Configuration dialog styles
@@ -240,9 +217,8 @@ input:-ms-input-placeholder {@include input-placeholder();}
   z-index:9999;
 
   border: 5px solid $tailon-toolbar-background-color;
-
-  @include box-sizing(border-box);
-  @include box-shadow(2px, 2px, 2px, 0px, darken($tailon-toolbar-input-background-color, 10%));
+  box-sizing: border-box;
+  box-shadow: 2px 2px 2px 0px darken($tailon-toolbar-input-background-color, 10%);
 
   form {
     padding: 10px;

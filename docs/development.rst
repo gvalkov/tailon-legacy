@@ -5,6 +5,19 @@ Notes on developing tailon, the front-end asset build flow and a list
 of long-standing todos.
 
 
+Prerequisites
+-------------
+
+Generating tailon's front-end assets requires bower_, webassets_, invoke_ and
+autoprefixer_. Everything can be installed by running the following commands in
+the repository root:
+
+.. code-block:: bash
+
+    $ pip install -r requirements-dev.txt
+    $ npm install
+
+
 Front-end assets
 ----------------
 
@@ -95,7 +108,8 @@ Todo
 - Handling of different tool versions (i.e. GNU awk vs BSD awk).
 
 
-.. _seccomp:    http://en.wikipedia.org/wiki/Seccomp
-.. _bower:      http://bower.io/
-.. _webassets:  https://webassets.readthedocs.org/
-.. _invoke:     http://invoke.readthedocs.org/
+.. _seccomp:      http://en.wikipedia.org/wiki/Seccomp
+.. _bower:        http://bower.io/
+.. _webassets:    https://webassets.readthedocs.org/
+.. _invoke:       http://invoke.readthedocs.org/
+.. _autoprefixer: https://github.com/postcss/autoprefixer
