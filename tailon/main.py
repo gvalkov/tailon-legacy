@@ -47,19 +47,12 @@ applog.setLevel(logging.WARN)
 applog.propagate = 0
 
 #-----------------------------------------------------------------------------
-def parseaddr(arg):
-    tmp = arg.split(':')
-    port = int(tmp[-1])
-    addr = ''.join(tmp[:-1])
-    addr = '' if addr == '*' else addr
-    return port, addr
-
 def parseconfig(cfg):
     import yaml
 
     raw_config = yaml.load(cfg)
 
-    port, addr = parseaddr(raw_config.get('bind', 'localhost:8080'))
+    port, addr = utils.parseaddr(raw_config.get('bind', 'localhost:8080'))
     config = {
         'port': port,
         'addr': addr,
@@ -156,7 +149,7 @@ def setup(opts):
         config = parseconfig(opts.config)
         return config
 
-    port, addr = parseaddr(opts.bind if opts.bind else 'localhost:8080')
+    port, addr = utils.parseaddr(opts.bind if opts.bind else 'localhost:8080')
     config = {
         'port': port,
         'addr': addr,

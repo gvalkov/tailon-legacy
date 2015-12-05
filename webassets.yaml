@@ -2,7 +2,7 @@ directory: tailon/assets
 url: assets/
 versions: hash
 url_expire: false
-debug: true
+debug: false
 config:
     debug_info: false
     # Path is relative to tailon/assets/scss.
@@ -46,7 +46,11 @@ bundles:
     filters: jsmin
     output: gen/main.js
     contents:
-      - main.js
+      - js/utils.js
+      - js/backend.js
+      - js/ui.js
+      - js/logview.js
+      - js/main.js
 
   internal-css:
     filters: pyscss,autoprefixer6,cssmin

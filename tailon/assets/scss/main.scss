@@ -1,8 +1,13 @@
 @import 'vars.scss';
 @import 'base.scss';
 
+
 body {
+  font: 13px/1.5 'Helvetica Neue',Arial,'Liberation Sans',FreeSans,sans-serif;
+  overflow: hidden;
+  height: 100vh;
   background-color: $tailon-logview-background-color;
+  width:100%;
 }
 
 //----------------------------------------------------------------------------
@@ -154,14 +159,15 @@ div#modeselect {
 //----------------------------------------------------------------------------
 
 .scrollable {
-  overflow-y: auto;
+  height: 100%;
+  word-break: break-all;
+  white-space: nowrap;
+  overflow: auto;
 }
 
 .log-view {
-  white-space: nowrap;
   font-family: $ttfonts;
   font-size: $tailon-logview-font-size;
-  overflow-y: auto;
   line-height: 1.3;
   padding-top: 2px;
   color: $tailon-logview-text-color;
@@ -184,9 +190,7 @@ div#modeselect {
 }
 
 .log-view-wrapped {
-  word-break: break-all;
   white-space: normal;
-  width: 100%;
 }
 
 

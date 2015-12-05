@@ -86,3 +86,11 @@ def statfiles(files):
             continue
         st = os.stat(path)
         yield path, st.st_size, st.st_mtime
+
+
+def parseaddr(arg):
+    tmp = arg.split(':')
+    port = int(tmp[-1])
+    addr = ''.join(tmp[:-1])
+    addr = '' if addr == '*' else addr
+    return port, addr
