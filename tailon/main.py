@@ -60,6 +60,7 @@ def parseconfig(cfg):
         'commands': raw_config.get('commands', ['tail', 'grep', 'awk']),
         'allow-transfers': raw_config.get('allow-transfers', False),
         'relative-root':   raw_config.get('relative-root', '/'),
+        'wrap-lines':      raw_config.get('wrap-lines', True),
     }
 
     if 'files' not in raw_config or not len(raw_config['files']):
@@ -95,6 +96,7 @@ def parseopts(args=None):
       allow-transfers: true   # allow log file downloads
       relative-root: /tailon  # web app root path (default: '')
       commands: [tail, grep]  # allowed commands
+      wrap-lines: true        # initial line-wrapping state
 
       files:
         - '/var/log/messages'
@@ -119,7 +121,7 @@ def parseopts(args=None):
     )
 
     #-------------------------------------------------------------------------
-    group = parser.add_argument_group('Required arguments')
+    group = parser.add_argument_group('Required options')
     arg = group.add_argument
     arg('-c', '--config', type=argparse.FileType('r'),
         metavar='path', help='yaml config file')
@@ -128,18 +130,25 @@ def parseopts(args=None):
         help='list of files or file wildcards to expose')
 
     #-------------------------------------------------------------------------
-    group = parser.add_argument_group('Optional arguments')
+    group = parser.add_argument_group('General options')
     arg = group.add_argument
     arg('-h', '--help', action='help', help='show this help message and exit')
     arg('-d', '--debug', action='store_true', help='show debug messages')
     arg('-v', '--version', action='version', version='tailon version %s' % version)
+
+    group = parser.add_argument_group('Server options')
+    arg = group.add_argument
     arg('-b', '--bind', metavar='addr:port', help='listen on the specified address and port')
     arg('-r', '--relative-root', metavar='path', default='', help='web app root path')
     arg('-a', '--allow-transfers', action='store_true', help='allow log file downloads')
-
     arg('-m', '--commands', nargs='*', metavar='cmd',
         choices=server.Commands.names, default=['tail', 'grep', 'awk'],
         help='allowed commands (default: tail grep awk)')
+
+    group = parser.add_argument_group('User-interface options')
+    arg = group.add_argument
+    arg('--no-wrap-lines', dest='wrap-lines', action='store_false',
+        help='initial line-wrapping state (default: true)')
 
     return parser, parser.parse_args(args)
 
@@ -158,6 +167,7 @@ def setup(opts):
         'allow-transfers': opts.allow_transfers,
         'relative-root': opts.__dict__.get('relative_root', ''),
         'debug': opts.__dict__.get('debug', False),
+        'wrap-lines': opts.__dict__.get('wrap-lines', True),
     }
 
     for entry in opts.files:
@@ -196,6 +206,7 @@ def main(argv=sys.argv):
     # If there is at least one directory in path, we instruct the client to
     # refresh the filelist every time the file select element is focused.
     client_config['refresh_filelist'] = bool(file_lister.all_dir_names)
+    client_config['wrap-lines-initial'] = config['wrap-lines']
 
     # TODO: Need to handle situations in which only readable, empty
     # directories were given.
@@ -208,6 +219,7 @@ def main(argv=sys.argv):
     httpd.listen(config['port'], config['addr'])
 
     log.debug('Config:\n%s', pprint.pformat(config))
+    log.debug('Client config:\n%s', pprint.pformat(client_config))
     log.debug('Files:\n%s',  pprint.pformat(dict(config['files'])))
 
     loop = ioloop.IOLoop.instance()

@@ -343,7 +343,8 @@ var LogView = Backbone.View.extend({
         dispatcher.on('clear-logview', this.clearLines);
 
         // Set line-wrapping to the default defined in the client config.
-        this.model.set({'wrap-lines': window.client_config['wrap_lines_default']});
+        this.model.set({'wrap-lines': window.client_config['wrap-lines-initial']});
+        $('#wrap_lines').prop('checked', this.model.get('wrap-lines'));
     },
 
     toggleWrapLines: function(model) {
