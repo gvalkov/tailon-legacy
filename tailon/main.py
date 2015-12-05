@@ -15,7 +15,7 @@ import pkg_resources
 from tornado import ioloop, httpserver
 
 from . import argparse
-from . import version
+from . import __version__
 from . import server
 from . import utils
 
@@ -134,7 +134,7 @@ def parseopts(args=None):
     arg = group.add_argument
     arg('-h', '--help', action='help', help='show this help message and exit')
     arg('-d', '--debug', action='store_true', help='show debug messages')
-    arg('-v', '--version', action='version', version='tailon version %s' % version)
+    arg('-v', '--version', action='version', version='tailon version %s' % __version__)
 
     group = parser.add_argument_group('Server options')
     arg = group.add_argument

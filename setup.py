@@ -1,12 +1,8 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-from tailon import version
-from os.path import abspath, dirname, join
+from tailon import __version__
 from setuptools import setup
-
-
-here = abspath(dirname(__file__))
 
 classifiers = [
     'Development Status :: 4 - Beta',
@@ -28,9 +24,9 @@ requirements = [
 
 kw = {
     'name':             'tailon',
-    'version':          version,
+    'version':          __version__,
     'description':      'Webapp for looking at and searching through log files',
-    'long_description': open(join(here, 'README.rst')).read(),
+    'long_description': open('README.rst').read(),
     'author':           'Georgi Valkov',
     'author_email':     'georgi.t.valkov@gmail.com',
     'license':          'Revised BSD License',

@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 
-import sys, os
+import sys, os, re
 import alabaster
 
-sys.path.insert(0, os.path.abspath('..'))
-from setup import kw
+# Read version from $package/__init__.py
+for line in open('../tailon/__init__.py'):
+    m = re.search(r'''__version__.*?=.*?['"](.*?)['"]''', line)
+    if m:
+        _release = m.group(1)
+        break
 
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
@@ -27,7 +31,7 @@ master_doc = 'index'
 project = u'tailon'
 copyright = u'2013-2015, Georgi Valkov'
 
-release = kw['version']
+release = _release
 version = release
 
 exclude_patterns = ['_build']
