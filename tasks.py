@@ -21,6 +21,7 @@ LOGSIM_FILES = [
     LOGDIR / 'apache/www.tailon.org/error.log',
 ]
 
+BOWERBIN = Path('node_modules/bower/bin/bower')
 BOWERDIR = Path('bower_components')
 ASSETDIR = Path('tailon/assets')
 
@@ -98,7 +99,7 @@ def webassets(debug=False, expire=True, replace=False):
     run('rsync -v {} {}'.format(' '.join(fonts), Path(ASSETDIR)/'fonts'))
 
     #--------------------------------------------------------------------------
-    # Load webassets environemtn
+    # Load webassets environment.
     env = YAMLLoader('./webassets.yaml').load_environment()
     env.debug = debug
     env.url_expire = expire
@@ -150,7 +151,7 @@ def url_to_script(url):
     return "  <script src='{{root}}%s'></script>\n" % url
 
 def bowerfiles():
-    res = run('bower list --paths --json', hide='out')
+    res = run('%s list --paths --json' % BOWERBIN, hide='out')
     res = json.loads(res.stdout)
 
     # Flatten the output of `bower list` and expand globs.
