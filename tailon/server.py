@@ -1,6 +1,7 @@
 # -*- coding: utf-8; -*-
 
 import os
+import json
 import logging
 import subprocess
 
@@ -149,7 +150,21 @@ class WebsocketCommands(SockJSConnection):
         if not self.connected:
             return
 
-        msg = {fn: data.decode('utf8').splitlines(True)}
+        msg_data = []
+        split_data = data.decode('utf8').splitlines(True);
+
+        if self.config['json-pretty-print'] is True:
+            for line in split_data:
+                try:
+                    # Json pretty print
+                    [msg_data.append(item) for item in json.dumps(json.loads(line), indent=4, ensure_ascii=False).splitlines(True)]
+                except ValueError as e:
+                    # If line is not json format
+                    msg_data.append(line)
+        else:
+            msg_data = split_data
+
+        msg = {fn: msg_data}
         self.wjson(msg)
 
     def stderr_callback(self, fn, stream, data):
