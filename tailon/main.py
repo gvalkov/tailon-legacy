@@ -61,6 +61,7 @@ def parseconfig(cfg):
         'allow-transfers': raw_config.get('allow-transfers', False),
         'relative-root':   raw_config.get('relative-root', '/'),
         'wrap-lines':      raw_config.get('wrap-lines', True),
+        'json-pretty-print': raw_config.get('json-pretty-print', False),
     }
 
     if 'files' not in raw_config or not len(raw_config['files']):
@@ -92,11 +93,12 @@ def parseopts(args=None):
 
     epilog = '''
     Example config file:
-      bind: 0.0.0.0:8080      # address and port to bind on
-      allow-transfers: true   # allow log file downloads
-      relative-root: /tailon  # web app root path (default: '')
-      commands: [tail, grep]  # allowed commands
-      wrap-lines: true        # initial line-wrapping state
+      bind: 0.0.0.0:8080        # address and port to bind on
+      allow-transfers: true     # allow log file downloads
+      relative-root: /tailon    # web app root path (default: '')
+      commands: [tail, grep]    # allowed commands
+      wrap-lines: true          # initial line-wrapping state
+      json-pretty-print: false  # use json pretty print
 
       files:
         - '/var/log/messages'
@@ -149,6 +151,8 @@ def parseopts(args=None):
     arg = group.add_argument
     arg('--no-wrap-lines', dest='wrap-lines', action='store_false',
         help='initial line-wrapping state (default: true)')
+    arg('-j', '--json-pretty-print', action='store_true',
+        help='use json pretty print (default: false)')
 
     return parser, parser.parse_args(args)
 
@@ -168,6 +172,7 @@ def setup(opts):
         'relative-root': opts.__dict__.get('relative_root', ''),
         'debug': opts.__dict__.get('debug', False),
         'wrap-lines': opts.__dict__.get('wrap-lines', True),
+        'json-pretty-print': opts.json_pretty_print,
     }
 
     for entry in opts.files:

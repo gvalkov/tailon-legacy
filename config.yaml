@@ -1,11 +1,12 @@
-bind: 0.0.0.0:8080      # address and port to bind on
-allow-transfers: true   # allow file downloads
-relative-root: /tailon/ # web app root path (default: '')
-commands: [tail, grep, awk] # allowed commands
+bind: 0.0.0.0:8080              # address and port to bind on
+allow-transfers: true           # allow file downloads
+relative-root: /tailon/         # web app root path (default: '')
+commands: [tail, grep, awk]     # allowed commands
+json-pretty-print : false       # use json pretty print
 
 files:
   - '/var/log/messages'
   - '/var/log/nginx/*.log'
   - '/var/log/xorg.[0-10].log'
-  - 'cron':             # sub-section
+  - 'cron':                     # sub-section
       - '/var/log/cron*'
