@@ -70,37 +70,50 @@ listening on http://localhost:8080.
 
 Tailon's server-side functionality is summarized in the tool's help message::
 
-    $ tailon --help
-    Usage: tailon [-c path] [-f path [path ...]] [-h] [-d] [-v] [-b addr:port]
-                  [-r path] [-a] [-m [cmd [cmd ...]]]
+   Usage: tailon [-c path] [-f path [path ...]] [-h] [-d] [-v] [-b addr:port]
+                 [-r path] [-a] [-m [cmd [cmd ...]]] [--no-wrap-lines]
 
-    Tailon is a webapp for looking at and searching through log files.
+   Tailon is a web app for looking at and searching through log files.
 
-    Required arguments:
-      -c, --config path               yaml config file
-      -f, --files path [path ...]     list of files or file wildcards to expose
+   Required options:
+     -c, --config path               yaml config file
+     -f, --files path [path ...]     list of files or file wildcards to expose
 
-    Optional arguments:
-      -h, --help                      show this help message and exit
-      -d, --debug                     show debug messages
-      -v, --version                   show program's version number and exit
-      -b, --bind addr:port            listen on the specified address and port
-      -r, --relative-root path        web app root path
-      -a, --allow-transfers           allow file downloads
-      -m, --commands [cmd [cmd ...]]  allowed commands (default: tail grep awk)
+   General options:
+     -h, --help                      show this help message and exit
+     -d, --debug                     show debug messages
+     -v, --version                   show program's version number and exit
 
-    Example config file:
-      bind: 0.0.0.0:8080           # address and port to bind on
-      allow-transfers: true        # allow file downloads
-      relative-root: /tailon       # web app root path (default: '')
-      commands: [tail, grep, awk]  # allowed commands
+   Server options:
+     -b, --bind addr:port            listen on the specified address and port
+     -r, --relative-root path        web app root path
+     -a, --allow-transfers           allow log file downloads
+     -m, --commands [cmd [cmd ...]]  allowed commands (default: tail grep awk)
 
-      files:
-        - '/var/log/messages'
-        - '/var/log/nginx/*.log'
-        - '/var/log/xorg.[0-10].log'
-        - 'cron':
-            - '/var/log/cron*'
+   User-interface options:
+     --no-wrap-lines                 initial line-wrapping state (default: true)
+
+   Example config file:
+     bind: 0.0.0.0:8080      # address and port to bind on
+     allow-transfers: true   # allow log file downloads
+     relative-root: /tailon  # web app root path (default: '')
+     commands: [tail, grep]  # allowed commands
+     wrap-lines: true        # initial line-wrapping state
+
+     files:
+       - '/var/log/messages'
+       - '/var/log/nginx/*.log'
+       - '/var/log/xorg.[0-10].log'
+       - '/var/log/nginx/'   # all files in this directory
+       - 'cron':             # it's possible to add sub-sections
+           - '/var/log/cron*'
+
+   Example command-line:
+     tailon -f /var/log/messages /var/log/debug -m tail
+     tailon -f '/var/log/cron*' -a -b localhost:8080
+     tailon -f /var/log/
+     tailon -c config.yaml -d
+
 
 Please note that wildcards specified in the config file will be
 evaluated only once at server-start time.
