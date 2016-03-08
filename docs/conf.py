@@ -3,12 +3,6 @@
 import sys, os, re
 import alabaster
 
-# Read version from $package/__init__.py
-for line in open('../tailon/__init__.py'):
-    m = re.search(r'''__version__.*?=.*?['"](.*?)['"]''', line)
-    if m:
-        _release = m.group(1)
-        break
 
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
@@ -29,9 +23,9 @@ images_config = {
 master_doc = 'index'
 
 project = u'tailon'
-copyright = u'2013-2015, Georgi Valkov'
+copyright = u'2013-2016, Georgi Valkov'
 
-release = _release
+release = '0.4.2'
 version = release
 
 exclude_patterns = ['_build']

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-from tailon import __version__
 from setuptools import setup
 
 classifiers = [
@@ -24,7 +23,7 @@ requirements = [
 
 kw = {
     'name':             'tailon',
-    'version':          __version__,
+    'version':          '0.4.2',
     'description':      'Webapp for looking at and searching through log files',
     'long_description': open('README.rst').read(),
     'author':           'Georgi Valkov',
