@@ -23,7 +23,7 @@ requirements = [
 
 kw = {
     'name':             'tailon',
-    'version':          '0.5.0',
+    'version':          '0.5.1',
     'description':      'Webapp for looking at and searching through log files',
     'long_description': open('README.rst').read(),
     'author':           'Georgi Valkov',
