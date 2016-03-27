@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8; -*-
 
 import pytest
@@ -9,7 +9,7 @@ import tempfile
 import textwrap
 from os.path import isdir, dirname, join as pjoin
 
-from tailon.main import parseconfig
+from tailon import main
 
 
 #-----------------------------------------------------------------------------
@@ -64,7 +64,7 @@ def test_simple(tempfiles):
       - {dir}/*.log
       - {dir}/dir/[abc].log
     '''.format(dir=tempfiles.dir)
-    cfg = parseconfig(textwrap.dedent(config))
+    cfg = main.parseconfig(textwrap.dedent(config))
 
     a1 = set(tempfiles.files)
     a1.discard(pjoin(tempfiles.dir, 'dir/c.log'))
@@ -84,7 +84,7 @@ def test_groups(tempfiles):
       - group2:
           - {dir}/3.log
     '''.format(dir=tempfiles.dir)
-    cfg = parseconfig(textwrap.dedent(config))
+    cfg = main.parseconfig(textwrap.dedent(config))
 
     assert cfg['port'] == 8080
     assert cfg['addr'] == 'localhost'
@@ -111,4 +111,4 @@ def test_groups_depth(tempfiles):
     '''.format(dir=tempfiles.dir)
 
     with pytest.raises(Exception):
-        parseconfig(textwrap.dedent(config))
+        main.parseconfig(textwrap.dedent(config))

@@ -1,12 +1,14 @@
 directory: tailon/assets
 url: assets/
 versions: hash
-url_expire: false
+url_expire: true
 debug: false
 config:
     debug_info: false
     # Path is relative to tailon/assets/scss.
     autoprefixer_bin: ../../../node_modules/postcss-cli/bin/postcss
+    typescript_bin:   node_modules/typescript/bin/tsc
+    pyscss_debug_info: false
 
 bundles:
   external-js:
@@ -14,23 +16,19 @@ bundles:
     output: gen/3rdparty.js
     contents:
       - vendor/jquery/dist/jquery.js
-      - vendor/underscore/underscore.js
       - vendor/microplugin/src/microplugin.js
       - vendor/sifter/sifter.js
       - vendor/selectize/dist/js/selectize.js
-      - vendor/moment/moment.js
-      - vendor/backbone/backbone.js
       - vendor/sockjs-client/dist/sockjs.js
-      - vendor/jquery-cookie/jquery.cookie.js
       - vendor/jquery-typewatch/jquery.typewatch.js
       - vendor/html5shiv/dist/html5shiv.js
-      - vendor/jwerty/jwerty.js
+      - vendor/spinjs/spin.js
 
   external-css:
     filters: cssmin
     output: gen/3rdparty.css
     contents:
-      - vendor/fontawesome/css/font-awesome.css
+      - vendor/components-font-awesome/css/font-awesome.css
       - vendor/normalize-css/normalize.css
 
   selectize-css:
@@ -43,14 +41,10 @@ bundles:
       - scss/selectize.default.scss
 
   internal-js:
-    filters: jsmin
-    output: gen/main.js
+    filters: rmconsole,jsmin
+    output: gen/Main.min.js
     contents:
-      - js/utils.js
-      - js/backend.js
-      - js/ui.js
-      - js/logview.js
-      - js/main.js
+      - gen/Main.js
 
   internal-css:
     filters: pyscss,autoprefixer6,cssmin

@@ -1,11 +1,12 @@
 # -*- coding: utf-8; -*-
 
 import os
+import re
 import logging
 import argparse
 import collections
 
-log = logging.getLogger('logtail')
+log = logging.getLogger('utils')
 
 
 class CompactHelpFormatter(argparse.RawTextHelpFormatter):
@@ -68,7 +69,9 @@ class FileLister:
                     files.append(path)
             self.files[group] = list(statfiles(files))
 
-        self.all_file_names = {i[0] for values in self.files.values() for i in values}
+        afn = (i[0] for values in self.files.values() for i in values)
+        afn = {os.path.abspath(i) for i in afn}
+        self.all_file_names = afn
 
 
 def listdir_abspath(path, files_only=True):
@@ -92,3 +95,7 @@ def parseaddr(arg):
     addr = ''.join(tmp[:-1])
     addr = '' if addr == '*' else addr
     return port, addr
+
+
+def remove_escapes(string):
+    return re.sub(r'\x1B\[(?:[0-9]{1,2}(?:;[0-9]{1,2})?)?[m|K]', '', string)

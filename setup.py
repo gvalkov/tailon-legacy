@@ -38,7 +38,8 @@ kw = {
     'zip_safe': False,
     'entry_points': {
         'console_scripts': [
-            'tailon = tailon.main:main'
+            'tailon = tailon.main:main_tailon',
+            'wpipe  = tailon.main:main_wpipe'
         ]
     },
 }
