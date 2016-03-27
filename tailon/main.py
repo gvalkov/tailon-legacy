@@ -14,6 +14,7 @@ import pkg_resources
 
 from tornado import ioloop, httpserver
 
+from . import commands
 from . import argparse
 from . import __version__
 from . import server
@@ -23,7 +24,7 @@ from . import utils
 #-----------------------------------------------------------------------------
 # Setup Logging
 #-----------------------------------------------------------------------------
-log = logging.getLogger('logtail')
+log = logging.getLogger('tailon')
 ch = logging.StreamHandler()
 ft = logging.Formatter('[+%(relativeCreated)f][%(levelname)5s] %(message)s')
 
@@ -45,6 +46,12 @@ applog = logging.getLogger('tornado.application')
 applog.addHandler(ch)
 applog.setLevel(logging.WARN)
 applog.propagate = 0
+
+def enable_debugging():
+    log.setLevel(logging.DEBUG)
+    applog.setLevel(logging.DEBUG)
+    weblog.setLevel(logging.DEBUG)
+
 
 #-----------------------------------------------------------------------------
 def parseconfig(cfg):
@@ -73,19 +80,56 @@ def parseconfig(cfg):
         for paths_or_group in el:
             if isinstance(paths_or_group, dict):
                 if indict:
-                    raise Exception('more than two sub-levels under "files"')
+                    raise RuntimeError('more than two sub-levels under "files"')
                 group_name, j = list(paths_or_group.items())[0]
                 helper(j, group_name, True)
                 continue
             for path in glob.glob(paths_or_group):
+                if not os.access(path, os.R_OK):
+                    log.info('skipping unreadable file: %r', path)
+                    continue
                 d = files.setdefault(group, [])
                 d.append(path)
 
     helper(raw_config['files'])
     return config
 
+
 #-----------------------------------------------------------------------------
-def parseopts(args=None):
+# Option parsing: shared
+#-----------------------------------------------------------------------------
+def add_general_options(parser):
+    group = parser.add_argument_group('General options')
+    arg = group.add_argument
+    arg('-h', '--help', action='help', help='show this help message and exit')
+    arg('-d', '--debug', action='store_true', help='show debug messages')
+    arg('-v', '--version', action='version', version='tailon|wtee version %s' % __version__)
+    arg('--output-encoding', dest='output_encoding', metavar='enc',
+        help="encoding for output")
+    arg('--input-encoding', dest='input_encoding', default='utf8', metavar='enc',
+        help='encoding for input and output (default utf8)')
+
+    return arg
+
+def add_server_options(parser):
+    group = parser.add_argument_group('Server options')
+    arg = group.add_argument
+    arg('-b', '--bind', metavar='addr:port', help='listen on the specified address and port')
+    arg('-r', '--relative-root', metavar='path', default='', help='web app root path')
+    return arg
+
+def add_ui_options(parser):
+    group = parser.add_argument_group('User-interface options')
+    arg = group.add_argument
+    arg('--no-wrap-lines', dest='wrap-lines', action='store_false',
+        help='initial line-wrapping state (default: true)')
+    return arg
+
+
+#-----------------------------------------------------------------------------
+# Option parsing: tailon
+#-----------------------------------------------------------------------------
+def parseopts_tailon(args=None):
     description = '''
     Tailon is a web app for looking at and searching through log files.
     '''
@@ -130,30 +174,51 @@ def parseopts(args=None):
         help='list of files or file wildcards to expose')
 
     #-------------------------------------------------------------------------
-    group = parser.add_argument_group('General options')
-    arg = group.add_argument
-    arg('-h', '--help', action='help', help='show this help message and exit')
-    arg('-d', '--debug', action='store_true', help='show debug messages')
-    arg('-v', '--version', action='version', version='tailon version %s' % __version__)
+    add_general_options(parser)
 
-    group = parser.add_argument_group('Server options')
-    arg = group.add_argument
-    arg('-b', '--bind', metavar='addr:port', help='listen on the specified address and port')
-    arg('-r', '--relative-root', metavar='path', default='', help='web app root path')
+    arg = add_server_options(parser)
     arg('-a', '--allow-transfers', action='store_true', help='allow log file downloads')
     arg('-m', '--commands', nargs='*', metavar='cmd',
-        choices=server.Commands.names, default=['tail', 'grep', 'awk'],
+        choices=commands.ToolPaths.command_names, default=['tail', 'grep', 'awk'],
         help='allowed commands (default: tail grep awk)')
 
-    group = parser.add_argument_group('User-interface options')
-    arg = group.add_argument
-    arg('--no-wrap-lines', dest='wrap-lines', action='store_false',
-        help='initial line-wrapping state (default: true)')
+    add_ui_options(parser)
 
     return parser, parser.parse_args(args)
 
+
 #-----------------------------------------------------------------------------
-def setup(opts):
+# Option parsing: wtee
+#-----------------------------------------------------------------------------
+def parseopts_wtee(args=None):
+    description = '''
+    A webview for piped data.
+    '''
+
+    epilog = '''
+    Example command-line:
+      tail -f /var/log/debug | wtee -b localhost:8080 | nl
+    '''
+
+    parser = argparse.ArgumentParser(
+        formatter_class=utils.CompactHelpFormatter,
+        description=textwrap.dedent(description),
+        epilog=textwrap.dedent(epilog),
+        add_help=False
+    )
+
+    #-------------------------------------------------------------------------
+    arg = add_general_options(parser)
+    add_server_options(parser)
+    add_ui_options(parser)
+
+    return parser, parser.parse_args(args)
+
+
+#-----------------------------------------------------------------------------
+# Config object: tailon
+#-----------------------------------------------------------------------------
+def setup_tailon(opts):
     if opts.config:
         config = parseconfig(opts.config)
         return config
@@ -178,9 +243,53 @@ def setup(opts):
 
     return config
 
+
 #-----------------------------------------------------------------------------
-def main(argv=sys.argv):
-    parser, opts = parseopts()
+# Config object: wtee
+#-----------------------------------------------------------------------------
+def setup_wtee(opts):
+    port, addr = utils.parseaddr(opts.bind if opts.bind else 'localhost:8080')
+    config = {
+        'port': port,
+        'addr': addr,
+        'relative-root': opts.__dict__.get('relative_root', ''),
+        'debug': opts.__dict__.get('debug', False),
+        'wrap-lines': opts.__dict__.get('wrap-lines', True),
+    }
+    return config
+
+
+#-----------------------------------------------------------------------------
+# Main: shared
+#-----------------------------------------------------------------------------
+def start_server(application, config, client_config):
+    httpd = httpserver.HTTPServer(application)
+    httpd.listen(config['port'], config['addr'])
+
+    log.debug('Config:\n%s', pprint.pformat(config))
+    log.debug('Client config:\n%s', pprint.pformat(client_config))
+    if 'files' in config:
+        log.debug('Files:\n%s',  pprint.pformat(dict(config['files'])))
+
+    loop = ioloop.IOLoop.instance()
+    msg = 'Listening on %s:%s' % (config['addr'], config['port'])
+    loop.add_callback(log.info, msg)
+    loop.start()
+
+def get_resource_dirs():
+    try:
+        template_dir = pkg_resources.resource_filename('tailon', 'templates')
+        assets_dir = pkg_resources.resource_filename('tailon', 'assets')
+    except ImportError:
+        template_dir, assets_dir = None, None
+    return template_dir, assets_dir
+
+
+#-----------------------------------------------------------------------------
+# Main: tailon
+#-----------------------------------------------------------------------------
+def main_tailon(argv=sys.argv):
+    parser, opts = parseopts_tailon()
 
     if not opts.config and not opts.files:
         parser.print_help()
@@ -189,44 +298,55 @@ def main(argv=sys.argv):
         sys.exit(1)
 
     if opts.debug:
-        log.setLevel(logging.DEBUG)
-        applog.setLevel(logging.DEBUG)
-        weblog.setLevel(logging.DEBUG)
+        enable_debugging()
 
-    try:
-        template_dir = pkg_resources.resource_filename('tailon', 'templates')
-        assets_dir = pkg_resources.resource_filename('tailon', 'assets')
-    except ImportError:
-        template_dir, assets_dir = None, None
+    config = setup_tailon(opts)
 
-    config = setup(opts)
-    client_config = {}
     file_lister = utils.FileLister(config['files'], True)
-
-    # If there is at least one directory in path, we instruct the client to
-    # refresh the filelist every time the file select element is focused.
-    client_config['refresh_filelist'] = bool(file_lister.all_dir_names)
-    client_config['wrap-lines-initial'] = config['wrap-lines']
-
     # TODO: Need to handle situations in which only readable, empty
     # directories were given.
     if not file_lister.all_file_names:
         print('Error: none of the given files or directories exist or are readable.', file=sys.stderr)
         sys.exit(1)
 
-    application = server.Application(config, client_config, file_lister, template_dir, assets_dir)
-    httpd = httpserver.HTTPServer(application)
-    httpd.listen(config['port'], config['addr'])
+    client_config = {
+        'wrap-lines-initial': config['wrap-lines'],
+        # If there is at least one directory in path, we instruct the client to
+        # refresh the filelist every time the file select element is focused.
+        'refresh_filelist': bool(file_lister.all_dir_names),
+        'commands': config['commands'],
+        'tool': 'tailon',
+    }
 
-    log.debug('Config:\n%s', pprint.pformat(config))
-    log.debug('Client config:\n%s', pprint.pformat(client_config))
-    log.debug('Files:\n%s',  pprint.pformat(dict(config['files'])))
+    template_dir, assets_dir = get_resource_dirs()
 
-    loop = ioloop.IOLoop.instance()
-    msg = 'Listening on %s:%s' % (config['addr'], config['port'])
-    loop.add_callback(log.info, msg)
-    loop.start()
+    toolpaths = commands.ToolPaths()
+    cmd_control = commands.CommandControl(toolpaths)
+
+    application = server.TailonApplication(
+        config, client_config, template_dir, assets_dir,
+        file_lister=file_lister,
+        cmd_control=cmd_control,
+    )
+    start_server(application, config, client_config)
 
 
-if __name__ == '__main__':
-    main()
+#-----------------------------------------------------------------------------
+# Main: wtee
+#-----------------------------------------------------------------------------
+def main_wtee(argv=sys.argv):
+    parser, opts = parseopts_wtee()
+
+    if opts.debug:
+        enable_debugging()
+
+    template_dir, assets_dir = get_resource_dirs()
+    config = setup_wtee(opts)
+
+    client_config = {
+        'wrap-lines-initial': config['wrap-lines'],
+        'tool': 'wtee',
+    }
+
+    application = server.WTeeApplication(config, client_config, template_dir, assets_dir)
+    start_server(application, config, client_config)

@@ -3,12 +3,10 @@ sphinxcontrib-images >= 0.4.1
 alabaster >= 0.6.1
 invoke >= 0.9.0
 pytest >= 2.6.4
+pytest-tornado >= 0.4.5
 daemonize >= 2.3.1
 jsmin >= 2.0.11
 pyScss >= 1.3.4
 PyYAML >= 3.11
 cssmin >= 0.2.0
-
-#webassets >= 0.10.1
-# Need autoprefixer6 support, which hasn't been released yet.
-git+https://github.com/miracle2k/webassets
+webassets >= 0.10.1

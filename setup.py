@@ -16,8 +16,8 @@ classifiers = [
 ]
 
 requirements = [
-    'tornado>=4.2.1',
-    'sockjs-tornado>=1.0.1',
+    'tornado>=4.3',
+    'sockjs-tornado>=1.0.3',
     'PyYAML>=3.11',
 ]
 
@@ -38,7 +38,8 @@ kw = {
     'zip_safe': False,
     'entry_points': {
         'console_scripts': [
-            'tailon = tailon.main:main'
+            'tailon = tailon.main:main_tailon',
+            'wtee   = tailon.main:main_wtee'
         ]
     },
 }

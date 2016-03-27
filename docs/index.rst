@@ -1,15 +1,21 @@
-Introduction
-============
+Tailon
+======
 
 Tailon is a self-hosted web application for looking at and searching
 through log files. It is little more than a fancy web wrapper around
 the following commands::
 
-    tail -f
-    tail -f | grep
-    tail -f | awk
-    tail -f | sed
+  tail -f
+  tail -f | grep
+  tail -f | awk
+  tail -f | sed
 
+Since version 0.6.0, tailon also comes with the *wtee* command. Much
+like the unix ``tee`` utility, *wtee* duplicates standard input to
+standard output, while also making the piped data viewable on a web
+page. For example::
+
+  tail -f /var/log/debug | wtee | nl
 
 Screenshots
 -----------
@@ -33,13 +39,13 @@ Screenshots
 Installation
 ------------
 
-The latest stable version of tailon can be installed from pypi_:
+The latest stable versions of tailon and wtee can be installed from pypi_:
 
 .. code-block:: bash
 
     $ pip install tailon
 
-The development version is available on github_ and can also be
+The development versions are available on github_ and can also be
 installed with the help of pip:
 
 .. code-block:: bash
@@ -52,6 +58,9 @@ encouraged.
 
 Quick start
 -----------
+
+Tailon
+~~~~~~
 
 Tailon is a command-line tool that spawns a local http server that
 serves your logfiles. It can be configured entirely from its
@@ -68,7 +77,7 @@ monitor:
 If at least one of the specified files is readable, tailon will start
 listening on http://localhost:8080.
 
-Tailon's server-side functionality is summarized in the tool's help message::
+Tailon's server-side functionality is summarized entirely in its help message::
 
    Usage: tailon [-c path] [-f path [path ...]] [-h] [-d] [-v] [-b addr:port]
                  [-r path] [-a] [-m [cmd [cmd ...]]] [--no-wrap-lines]
@@ -112,18 +121,54 @@ Tailon's server-side functionality is summarized in the tool's help message::
      tailon -f /var/log/messages /var/log/debug -m tail
      tailon -f '/var/log/cron*' -a -b localhost:8080
      tailon -f /var/log/
-     tailon -c config.yaml -d
+     tailon -c config.yaml --debug
+
+Please note that if the file list includes wildcard characters, they
+will be expanded only once at server-start time.
 
 
-Please note that wildcards specified in the config file will be
-evaluated only once at server-start time.
+Wtee
+~~~~
+
+The wtee tool does two things:
+
+- Duplicates standard input to standard output.
+- Starts a local http server on which the piped data can be viewed.
+
+Like tailon, wtee's server-side functionality is summarized in its help
+message::
+
+  Usage: wtee [-h] [-d] [-v] [--output-encoding enc] [--input-encoding enc]
+            [-b addr:port] [-r path] [--no-wrap-lines]
+
+  A webview for piped data.
+
+  General options:
+    -h, --help                show this help message and exit
+    -d, --debug               show debug messages
+    -v, --version             show program's version number and exit
+    --output-encoding enc     encoding for output
+    --input-encoding enc      encoding for input and output (default utf8)
+
+  Server options:
+    -b, --bind addr:port      listen on the specified address and port
+    -r, --relative-root path  web app root path
+
+  User-interface options:
+    --no-wrap-lines           initial line-wrapping state (default: true)
+
+  Example command-line:
+    tail -f /var/log/debug | wtee -b localhost:8080 | nl
 
 
-Usage with nginx
-----------------
+Reverse proxy configuration
+---------------------------
 
-1) Run ``tailon``, binding it to localhost and specifiying a relative
-   root of your liking. For example:
+Nginx
+~~~~~
+
+1) Run ``tailon`` or ``wtee``, binding it to localhost and specifiying
+   a relative root of your liking. For example:
 
 .. code-block:: bash
 
@@ -158,9 +203,8 @@ To clarify this point, consider the following input to the sed command::
   s/a/b'; cat /etc/secrets
 
 This will result in an error, as tailon does not invoke commands through a
-shell. On the other hand the following command is a perfectly valid sed
-script that has the same effect as the above attempt for a shell
-injection::
+shell. On the other hand, the following command is a perfectly valid sed
+script that has the same effect as the above attempt for shell injection::
 
   r /etc/secrets
 
@@ -174,8 +218,8 @@ Development
 -----------
 
 Code, bug reports and feature requests are kindly accepted on tailon's
-github_ page. Please refer to the :doc:`development <development>` document
-for more information on developing tailon.
+github_ page. Please refer to the :doc:`development <development>`
+document for more information on developing tailon.
 
 
 Similar Projects
@@ -190,13 +234,13 @@ Similar Projects
 Attributions
 ------------
 
-- Tailon's favicon was created from this_ icon.
+Tailon and wtee's favicons ere created from this_ icon.
 
 
 License
 -------
 
-Tailon is released under the terms of the `Revised BSD License`_.
+Tailon and wtee are released under the terms of the `Revised BSD License`_.
 
 
 .. _pypi:      http://pypi.python.org/pypi/tailon

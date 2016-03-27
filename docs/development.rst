@@ -2,7 +2,7 @@ Development
 ===========
 
 Notes on developing tailon, the front-end asset build flow and a list
-of long-standing todos.
+of long-standing TODOs.
 
 
 Prerequisites
@@ -34,7 +34,7 @@ as follows::
    `-- tailon/assets
        |-- fonts/
        |-- gen/
-       |-- main.js
+       |-- js/
        |-- scss/
        `-- vendor/
 
@@ -46,51 +46,65 @@ With the help of the ``inv collectstatic`` task, all source files in ``bower_com
 are copied to ``tailon/assets/vendor``. Note that unlike ``bower_components``, this
 directory is committed to git.
 
-Running ``inv webassets`` generates the files in ``inv tailon/assets/gen``. These are the
-assets that end up in the tailon source package that is uploaded to PyPi. The rules that
-govern the asset pipeline are defined in ``webassets.yaml``. In short, the following
-transformations happen::
+Running ``inv webassets`` generates the files in ``inv tailon/assets/gen``.
+These are the assets that end up in the tailon source distribution that is
+uploaded to PyPi. The rules that govern the asset pipeline are defined in
+``webassets.yaml``. In short, the following transformations are applied::
 
-  tailon/assets/scss/*    --> compile,minify --> tailon/assets/gen/main.css
-  tailon/assets/vendor/*  --> jsmin          --> tailon/assets/gen/3rdparty.js
-  tailon/assets/main.js   --> jsmin          --> tailon/assets/gen/main.js
+  tailon/assets/scss/*    --> compile,minify   --> tailon/assets/gen/main.css
+  tailon/assets/vendor/*  --> jsmin            --> tailon/assets/gen/3rdparty.js
+  tailon/assets/Main.js   --> rmconsole,jsmin  --> tailon/assets/gen/js/Main.min.js
 
-The links to the assets find their way into the ``templates/index.html`` template through
-the ``webassets --replace`` task. It replaces the html between the ``WEBASSETS CSS`` and
-``WEBASSETS JS`` placeholders with the links to the compiled, minified and concatenated
-scss and js files. For example::
+The ``tailon/assets/Main.js`` file is generated from the typescript sources in
+``tailon/assets/js``. The process is handled by the ``compile_typescript`` task.
+
+The assets links find their way into the ``templates/base.html`` template
+through the ``webassets --replace`` task. It simply replaces the html between
+the ``WEBASSETS CSS`` and ``WEBASSETS JS`` placeholders with the links to the
+compiled, minified and concatenated scss and js files. For example::
 
   <link rel='stylesheet' href='{{root}}assets/gen/main.css'>
   <script src='{{root}}assets/gen/3rdparty.js'></script>
   <script src='{{root}}assets/gen/main.js'></script>
 
-You may also want to skip the minification and concatenation steps with the ``--debug``
-option.
+You may also want to skip the minification and concatenation steps with the
+``--debug`` option.
+
+
+Development data
+----------------
+
+You may use the ``inv logsim_start`` and ``in logsim_start`` tasks to generate
+random logfiles that you can monitor with tailon.
+
 
 FAQ
-...
+---
+
+* I just want to make a small change to the frontend code or styles. What do I do?
+
+  Modify the typescript or scss files in ``tailon/assets`` and run:
+
+  .. code-block:: bash
+
+     # Compile and minify SCSS; Concatenate and minify JS.
+     $ inv webassets --replace
+
+     # Without minifying and concatenating JS (usefuly for debugging).
+     $ inv webassets --replace --debug
+
 
 * Adding or updating a third-party dependency:
 
-.. code-block:: bash
+  .. code-block:: bash
 
-    # Run after adding the dependency to the bower.json file.
-    $ bower install
-    $ inv collectstatic  # Copies from bower_components to tailon/assets/vendor.
-    $ inv webassets --replace --no-expire
-
-* Making changes to ``main.js`` or any of the files in ``scss``:
-
-.. code-block:: bash
-
-    # Compile and minify SCSS; Concatenate and minify JS.
-    $ inv webassets --replace --no-expire
-
-    # Without minifying and concatenating JS (usefuly for debugging).
-    $ inv webassets --replace --no-expire --debug
+     # Run after adding the dependency to the bower.json file.
+     $ bower install
+     $ inv collectstatic  # Copies from bower_components to tailon/assets/vendor.
+     $ inv webassets --replace --no-expire
 
 
-Todo
+TODO
 ----
 
 - There are still parts of the UI that haven't been implemented.

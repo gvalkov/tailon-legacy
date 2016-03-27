@@ -1,5 +1,6 @@
 # -*- coding: utf-8; -*-
 
+import re
 import json
 import subprocess as sub
 
@@ -9,6 +10,7 @@ from pathlib import Path
 
 from invoke import run, task
 from webassets.loaders import YAMLLoader
+from webassets.filter import register_filter, Filter
 
 
 #-----------------------------------------------------------------------------
@@ -29,16 +31,21 @@ ASSETDIR = Path('tailon/assets')
 # Invoke tasks.
 #-----------------------------------------------------------------------------
 @task
-def logsim_start(update_msec='500,3000',
-                 truncate_msec='10000,20000',
-                 rate='1,3', seed=None,
-                 pid=str(LOGSIM_PID)):
+def logsim_start(
+        update_msec='100,2000',
+        truncate_msec='10000,20000',
+        rate='1,5', seed=None,
+        pid=str(LOGSIM_PID)
+):
 
     seed = seed if seed else str(time())
     files = ' '.join(str(i) for i in LOGSIM_FILES)
 
+    print('writing random log lines to:')
+    print(' \n'.join(' - %s' % i for i in LOGSIM_FILES))
+
     cmd = '''\
-    python tests/utils.py \
+    python tests/logsim.py \
         --update-msec {update_msec} \
         --truncate-msec {truncate_msec} \
         --rate {rate}  \
@@ -51,7 +58,7 @@ def logsim_start(update_msec='500,3000',
 
 @task
 def logsim_stop():
-    run('python tests/utils.py --daemon stop')
+    run('python tests/logsim.py --daemon stop')
 
 @task
 def logsim():
@@ -85,18 +92,30 @@ def cleanstatic():
         path.unlink()
 
 @task
+def compile_typescript(debug=False):
+    dst = ASSETDIR / 'gen/Main.js'
+    src = ' '.join(map(str, Path('tailon/assets/js/').glob('*.ts')))
+    cmd = 'node_modules/typescript/bin/tsc --pretty --out %s --sourceMap %s'
+
+    print('* Compiling typescript to %s' % dst)
+    run(cmd % (dst, src))
+
+@task(pre=[compile_typescript])
 def webassets(debug=False, expire=True, replace=False):
+    # Register our custom webassets filter.
+    register_filter(ConsoleLogFilter)
+
     #--------------------------------------------------------------------------
     # Copy fonts to webassets dir.
     print('* Copying fonts to %s' % ASSETDIR)
     fonts = [
-        'tailon/assets/vendor/fontawesome/fonts/FontAwesome.otf',
-        'tailon/assets/vendor/fontawesome/fonts/fontawesome-webfont.eot',
-        'tailon/assets/vendor/fontawesome/fonts/fontawesome-webfont.svg',
-        'tailon/assets/vendor/fontawesome/fonts/fontawesome-webfont.ttf',
-        'tailon/assets/vendor/fontawesome/fonts/fontawesome-webfont.woff',
+        'tailon/assets/vendor/components-font-awesome/fonts/fontawesome-webfont.eot',
+        'tailon/assets/vendor/components-font-awesome/fonts/fontawesome-webfont.svg',
+        'tailon/assets/vendor/components-font-awesome/fonts/fontawesome-webfont.ttf',
+        'tailon/assets/vendor/components-font-awesome/fonts/fontawesome-webfont.woff',
+        'tailon/assets/vendor/components-font-awesome/fonts/fontawesome-webfont.woff2',
     ]
-    run('rsync -v {} {}'.format(' '.join(fonts), Path(ASSETDIR)/'fonts'))
+    run('rsync -v {} {}'.format(' '.join(fonts), ASSETDIR / 'fonts'))
 
     #--------------------------------------------------------------------------
     # Load webassets environment.
@@ -106,11 +125,11 @@ def webassets(debug=False, expire=True, replace=False):
 
     #--------------------------------------------------------------------------
     # Generate css/js urls.
-    css_urls = [env['external-css'],  env['selectize-css'], env['internal-css']]
+    css_urls = [env['external-css'], env['selectize-css'], env['internal-css']]
     css_urls = [url_to_link(url) for urls in css_urls for url in urls.urls()]
 
-    js_urls = [env['external-js'].urls(), env['internal-js'].urls()]
-    js_urls = [url_to_script(url) for urls in js_urls for url in urls]
+    js_urls = [env['external-js'], env['internal-js']]
+    js_urls = [url_to_script(url) for urls in js_urls for url in urls.urls()]
 
     print()
     print('* URLs css:')
@@ -120,14 +139,14 @@ def webassets(debug=False, expire=True, replace=False):
     print(''.join((i.lstrip() for i in js_urls)))
 
     if replace:
-        sedplaceholder('tailon/templates/index.html', '<!-- WEBASSETS CSS -->', css_urls)
-        sedplaceholder('tailon/templates/index.html', '<!-- WEBASSETS JS -->',  js_urls)
+        sedplaceholder('tailon/templates/base.html', '<!-- WEBASSETS CSS -->', css_urls)
+        sedplaceholder('tailon/templates/base.html', '<!-- WEBASSETS JS -->',  js_urls)
 
 
 #-----------------------------------------------------------------------------
 # Utility functions.
 #-----------------------------------------------------------------------------
-def sedplaceholder(filename, placeholder, replacement):
+def sedplaceholder(filename, placeholder, replacement, indent=6):
     lines = open(filename).readlines()
     start, end = None, None
     for n, line in enumerate(lines):
@@ -140,7 +159,7 @@ def sedplaceholder(filename, placeholder, replacement):
             if start and end:
                 break
 
-    lines[start + 1:end] = replacement
+    lines[start + 1:end] = ['%s%s' % (' ' * indent, i) for i in replacement]
     with open(filename, 'w') as fh:
         fh.write(''.join(lines))
 
@@ -163,3 +182,16 @@ def bowerfiles():
 def vendorfiles():
     for source in bowerfiles():
         yield Path(ASSETDIR, *source.parts[1:])
+
+
+class ConsoleLogFilter(Filter):
+    '''
+    A webassets filter that removes calls to console.log in non-debug builds.
+    '''
+
+    name = 'rmconsole'
+
+    def output(self, _in, out, **kwargs):
+        for line in _in:
+            line = re.sub(r'console\.(log|warn)\(.*?\);', '', line)
+            out.write(line)

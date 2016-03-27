@@ -13,7 +13,7 @@ body {
 //----------------------------------------------------------------------------
 // Toolbar styles.
 //----------------------------------------------------------------------------
-.toolbar {
+#toolbar {
   width: 100%;
   background: $tailon-toolbar-background-color;
 
@@ -44,15 +44,15 @@ body {
   flex: 1 0 auto;
 }
 
-div#logselect {
+div #file-select {
   min-width: 22%;
 }
 
-div#modeselect {
+div #command-select {
   min-width: 80px;
 }
 
-#scriptinput {
+#script-input {
   box-sizing: border-box;
   box-shadow: 2px 2px 2px 0px darken($tailon-toolbar-input-background-color, 10%);
 
@@ -61,6 +61,7 @@ div#modeselect {
   background: $tailon-toolbar-input-background-color;
   padding-right: 30px;
   position: relative;
+  font-size: 13px;
 
   input {
     @extend .toolbar-widget;
@@ -106,7 +107,7 @@ div#modeselect {
 
 .toolbar-text {
   font-family: $ttfonts;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .button-group {
@@ -122,7 +123,6 @@ div#modeselect {
     height: 26px;
     width: 26px;
     text-align: center;
-    line-height: 26px;
     font-size: 1.5em;
 
     &:hover {
@@ -142,10 +142,22 @@ div#modeselect {
   }
 }
 
-.quickbar {
+#configuration {
   position: absolute;
   top: 5px;
-  right: 5px;
+  right: 15px;
+}
+
+#action-show-settings {
+  position: absolute;
+  top: 5px;
+  right: 15px;
+}
+
+#minimized-action-bar {
+  position: absolute;
+  top: 3px;
+  right: 8px;
 }
 
 @mixin selected-placeholder($color: $tailon-toolbar-input-background-color) {
@@ -157,7 +169,6 @@ div#modeselect {
 //----------------------------------------------------------------------------
 // Log view style.
 //----------------------------------------------------------------------------
-
 .scrollable {
   height: 100%;
   word-break: break-all;
@@ -216,7 +227,7 @@ input::placeholder {
   position: fixed;
   display:none;
   top: 40px;
-  right: 0;
+  right: 15px;
   background: $tailon-toolbar-input-background-color;
   z-index:9999;
 

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Wtee{% end %}
+{% block description %}Web tee{% end %}
+
+{% block body %}
+<div id="action-show-settings" class="button-group">
+    <a title="Show Settings">
+        <i class="fa fa-cog"></i>
+    </a>
+</div>
+
+<div id="configuration">
+    <form>
+        <p>
+            <label for="history-lines">Scrollback lines:</label>
+            <input type="number" name="history-lines" id="history-lines", min="0", value="2000">
+        </p>
+        <p>
+            <label for="wrap-lines">Wrap lines:</label>
+            <input type="checkbox" name="wrap-lines" id="wrap-lines" checked>
+        </p>
+    </form>
+</div>
+
+<div class="scrollable">
+    <div id="logviewer" class="log-view"></div>
+</div>
+{% end %}

@@ -153,12 +153,12 @@ def main():
     arg = parser.add_argument
     arg('--update-msec',   default=1000,  metavar='msec', type=tuple_or_int)
     arg('--truncate-msec', default=10000, metavar='msec', type=tuple_or_int)
-    arg('--rate',          default=1, metavar='msec', type=tuple_or_int)
-    arg('--daemon',        action='store_true')
-    arg('--pid',           default='/tmp/python-tailon-logsim.pid')
-    arg('--seed',          default=str(time()))
-    arg('action',          choices=['start', 'stop'])
-    arg('files',           nargs=argparse.REMAINDER)
+    arg('--rate', default=1, metavar='msec', type=tuple_or_int)
+    arg('--daemon', action='store_true')
+    arg('--pid', default='/tmp/python-tailon-logsim.pid')
+    arg('--seed', default=str(time()))
+    arg('action', choices=['start', 'stop'])
+    arg('files', nargs=argparse.REMAINDER)
 
     opts = parser.parse_args()
     opts.files = [os.path.abspath(fn) for fn in opts.files]

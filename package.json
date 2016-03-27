@@ -3,9 +3,10 @@
   "version": "0.0.0",
   "description": "",
   "dependencies": {
-    "autoprefixer": "^6.1.0",
+    "autoprefixer": "^6.3.4",
     "bower": "^1.6.5",
     "jshint": "^2.8.0",
-    "postcss-cli": "^2.3.2"
+    "postcss-cli": "^2.3.2",
+    "typescript":  "^1.8.9"
   }
 }
