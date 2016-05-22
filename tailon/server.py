@@ -152,7 +152,7 @@ class WebsocketTailon(sockjs.tornado.SockJSConnection):
         if not self.connected:
             return
 
-        data = data.decode('utf8')
+        data = data.decode('utf8', errors='replace')
         lines = data.splitlines(True)
 
         if not lines:
@@ -173,7 +173,7 @@ class WebsocketTailon(sockjs.tornado.SockJSConnection):
         if not self.connected:
             return
 
-        text = data.decode('utf8')
+        text = data.decode('utf8', errors='replace')
         if text.endswith(': file truncated\n'):
             text = ['%s - %s - truncated' % (datetime.now(), path)]
         else:
