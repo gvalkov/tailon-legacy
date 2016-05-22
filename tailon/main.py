@@ -140,6 +140,7 @@ def parseopts_tailon(args=None):
       allow-transfers: true   # allow log file downloads
       relative-root: /tailon  # web app root path (default: '')
       commands: [tail, grep]  # allowed commands
+      tail-lines: 10          # number of lines to tail initially
       wrap-lines: true        # initial line-wrapping state
 
       files:
@@ -174,10 +175,12 @@ def parseopts_tailon(args=None):
         help='list of files or file wildcards to expose')
 
     #-------------------------------------------------------------------------
-    add_general_options(parser)
+    arg_general = add_general_options(parser)
 
     arg = add_server_options(parser)
-    arg('-a', '--allow-transfers', action='store_true', help='allow log file downloads')
+    arg('-a', '--allow-transfers', action='store_true',  help='allow log file downloads')
+    arg('-t', '--tail-lines', default=10, type=int, metavar='num',
+        help='number of lines to tail initially')
     arg('-m', '--commands', nargs='*', metavar='cmd',
         choices=commands.ToolPaths.command_names, default=['tail', 'grep', 'awk'],
         help='allowed commands (default: tail grep awk)')
@@ -232,6 +235,7 @@ def setup_tailon(opts):
         'allow-transfers': opts.allow_transfers,
         'relative-root': opts.__dict__.get('relative_root', ''),
         'debug': opts.__dict__.get('debug', False),
+        'tail-lines': opts.__dict__.get('tail_lines', 10),
         'wrap-lines': opts.__dict__.get('wrap-lines', True),
     }
 
@@ -311,6 +315,7 @@ def main_tailon(argv=sys.argv):
 
     client_config = {
         'wrap-lines-initial': config['wrap-lines'],
+        'tail-lines-initial': config['tail-lines'],
         # If there is at least one directory in path, we instruct the client to
         # refresh the filelist every time the file select element is focused.
         'refresh_filelist': bool(file_lister.all_dir_names),

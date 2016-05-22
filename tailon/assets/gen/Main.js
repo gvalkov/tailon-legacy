@@ -297,7 +297,7 @@ var settings = new Settings.Settings({
     // Logview tunables.
     wrapLines: false,
     linesOfHistory: 2000,
-    linesToTail: 30,
+    linesToTail: window.clientConfig['tail-lines-initial'],
     currentCommand: null,
     currentFile: null,
     currentScript: null,

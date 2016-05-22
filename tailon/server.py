@@ -135,6 +135,7 @@ class WebsocketTailon(sockjs.tornado.SockJSConnection):
         self.config = self.application.config
         self.file_lister = self.application.file_lister
         self.cmd_control = self.application.cmd_control
+        self.initial_tail_lines = self.config['tail-lines']
         self.last_line = []
         self.processes = {
             'tail': None,
@@ -216,7 +217,7 @@ class WebsocketTailon(sockjs.tornado.SockJSConnection):
         self.killall()
 
         if 'tail' == command['command']:
-            n = command.get('tail-lines', 10)
+            n = command.get('tail-lines', self.initial_tail_lines)
             proc = self.cmd_control.tail(n, path, STREAM, STREAM)
             self.processes['tail'] = proc
 
@@ -226,7 +227,7 @@ class WebsocketTailon(sockjs.tornado.SockJSConnection):
             proc.stderr.read_until_close(errcb, errcb)
 
         elif 'grep' == command['command']:
-            n = command.get('tail-lines', 10)
+            n = command.get('tail-lines', self.initial_tail_lines)
             regex = command.get('script', '.*')
 
             proc_tail, proc_grep = self.cmd_control.tail_grep(n, path, regex, STREAM, STREAM)
@@ -238,7 +239,7 @@ class WebsocketTailon(sockjs.tornado.SockJSConnection):
             proc_grep.stderr.read_until_close(errcb, errcb)
 
         elif 'awk' in command['command']:
-            n = command.get('tail-lines', 10)
+            n = command.get('tail-lines', self.initial_tail_lines)
             script = command.get('script', '{print $0}')
 
             proc_tail, proc_awk = self.cmd_control.tail_awk(n, path, script, STREAM, STREAM)
@@ -250,7 +251,7 @@ class WebsocketTailon(sockjs.tornado.SockJSConnection):
             proc_awk.stderr.read_until_close(errcb, errcb)
 
         elif 'sed' == command['command']:
-            n = command.get('tail-lines', 10)
+            n = command.get('tail-lines', self.initial_tail_lines)
             script = command.get('script', 's|.*|&|')
 
             proc_tail, proc_sed = self.cmd_control.tail_sed(n, path, script, STREAM, STREAM)

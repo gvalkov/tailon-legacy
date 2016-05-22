@@ -29,8 +29,8 @@ let settings = new Settings.Settings({
 
     // Logview tunables.
     wrapLines: false,
-    linesOfHistory: 2000,   // 0 for infinite history.
-    linesToTail: 30,        // i.e. tail -n $linesToTail.
+    linesOfHistory: 2000,  // 0 for infinite history.
+    linesToTail: window.clientConfig['tail-lines-initial'],  // i.e. tail -n $linesToTail.
 
     currentCommand: null,
     currentFile: null,

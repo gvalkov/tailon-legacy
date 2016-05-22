@@ -79,8 +79,9 @@ listening on http://localhost:8080.
 
 Tailon's server-side functionality is summarized entirely in its help message::
 
-   Usage: tailon [-c path] [-f path [path ...]] [-h] [-d] [-v] [-b addr:port]
-                 [-r path] [-a] [-m [cmd [cmd ...]]] [--no-wrap-lines]
+   Usage: tailon [-c path] [-f path [path ...]] [-h] [-d] [-v]
+                 [--output-encoding enc] [--input-encoding enc] [-b addr:port]
+                 [-r path] [-a] [-t num] [-m [cmd [cmd ...]]] [--no-wrap-lines]
 
    Tailon is a web app for looking at and searching through log files.
 
@@ -92,11 +93,14 @@ Tailon's server-side functionality is summarized entirely in its help message::
      -h, --help                      show this help message and exit
      -d, --debug                     show debug messages
      -v, --version                   show program's version number and exit
+     --output-encoding enc           encoding for output
+     --input-encoding enc            encoding for input and output (default utf8)
 
    Server options:
      -b, --bind addr:port            listen on the specified address and port
      -r, --relative-root path        web app root path
      -a, --allow-transfers           allow log file downloads
+     -t, --tail-lines num            number of lines to tail initially
      -m, --commands [cmd [cmd ...]]  allowed commands (default: tail grep awk)
 
    User-interface options:
@@ -107,6 +111,7 @@ Tailon's server-side functionality is summarized entirely in its help message::
      allow-transfers: true   # allow log file downloads
      relative-root: /tailon  # web app root path (default: '')
      commands: [tail, grep]  # allowed commands
+     tail-lines: 10          # number of lines to tail initially
      wrap-lines: true        # initial line-wrapping state
 
      files:
@@ -121,7 +126,7 @@ Tailon's server-side functionality is summarized entirely in its help message::
      tailon -f /var/log/messages /var/log/debug -m tail
      tailon -f '/var/log/cron*' -a -b localhost:8080
      tailon -f /var/log/
-     tailon -c config.yaml --debug
+     tailon -c config.yaml -d
 
 Please note that if the file list includes wildcard characters, they
 will be expanded only once at server-start time.
