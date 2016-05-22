@@ -89,17 +89,24 @@ class WebsocketWTee(sockjs.tornado.SockJSConnection):
         self.config = self.application.config
         self.connected = False
 
+        # This is for compatibility between Python 2 and 3.
+        self.stdin_buffer  = getattr(sys.stdin, 'buffer', sys.stdin)
+        self.stdout_buffer = getattr(sys.stdout, 'buffer', sys.stdout)
+
         fl = fcntl.fcntl(sys.stdin, fcntl.F_GETFL)
         fcntl.fcntl(sys.stdin, fcntl.F_SETFL, fl | os.O_NONBLOCK)
 
     def on_open(self, info):
         self.connected = True
-        io_loop.add_handler(sys.stdin, self.on_stdin, io_loop.READ)
+        io_loop.add_handler(self.stdin_buffer, self.on_stdin, io_loop.READ)
 
     def on_stdin(self, fd, events):
         data = fd.read()
         lines = data.splitlines(True)
 
+        # TODO: Use the value of '--input-encoding' here.
+        decoded_data = data.decode('utf8', errors='replace')
+        lines = decoded_data.splitlines(True)
         if lines:
             if not lines[-1].endswith('\n'):
                 self.last_line.append(lines[-1])
@@ -109,7 +116,7 @@ class WebsocketWTee(sockjs.tornado.SockJSConnection):
                     lines[0] = ''.join(self.last_line) + lines[0]
                     self.last_line = []
 
-        sys.stdout.write(data)
+        self.stdout_buffer.write(data)
         self.write_json(lines)
 
     def on_close(self):
