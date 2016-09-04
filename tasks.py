@@ -32,6 +32,7 @@ ASSETDIR = Path('tailon/assets')
 #-----------------------------------------------------------------------------
 @task
 def logsim_start(
+        ctx,
         update_msec='100,2000',
         truncate_msec='10000,20000',
         rate='1,5', seed=None,
@@ -57,32 +58,33 @@ def logsim_start(
     run(cmd)
 
 @task
-def logsim_stop():
+def logsim_stop(ctx):
     run('python tests/logsim.py --daemon stop')
 
 @task
-def logsim():
+def logsim(ctx):
     files = ' '.join(str(i) for i in LOGSIM_FILES)
     sub.check_call('python -m tailon.main  -d -a -f {}'.format(files), shell=True)
 
 @task
-def test():
+def test(ctx):
     run('py.test -sv tests', pty=True)
 
+
 @task(aliases=['lsbower'])
-def list_bowerfiles():
+def list_bowerfiles(ctx):
     for source in bowerfiles():
         print(source)
 
 @task
-def collectstatic():
+def collectstatic(ctx):
     # Copy bower main files to the vendor dir.
     for source in bowerfiles():
         dest = Path(ASSETDIR/'vendor', *source.parts[1:])
         run('install -vD {} {}'.format(source, dest))
 
 @task
-def cleanstatic():
+def cleanstatic(ctx):
     dirs = ['gen', 'fonts']
     paths = [Path(ASSETDIR/i).glob('*') for i in dirs]
     for path in (j for i in paths for j in i):
@@ -92,7 +94,7 @@ def cleanstatic():
         path.unlink()
 
 @task
-def compile_typescript(debug=False):
+def compile_typescript(ctx, debug=False):
     dst = ASSETDIR / 'gen/Main.js'
     src = ' '.join(map(str, Path('tailon/assets/js/').glob('*.ts')))
     cmd = 'node_modules/typescript/bin/tsc --pretty --out %s --sourceMap %s'
@@ -101,7 +103,7 @@ def compile_typescript(debug=False):
     run(cmd % (dst, src))
 
 @task(pre=[compile_typescript])
-def webassets(debug=False, expire=True, replace=False):
+def webassets(ctx, debug=False, expire=True, replace=False):
     # Register our custom webassets filter.
     register_filter(ConsoleLogFilter)
 
