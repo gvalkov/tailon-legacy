@@ -5,10 +5,10 @@
     "jquery": "2.1.4",
     "jquery-typewatch": "2.2.2",
     "html5shiv": "3.7.3",
-    "normalize-css": "3.0.3",
-    "sockjs-client": "1.0.3",
-    "selectize": "0.12.1",
-    "components-font-awesome": "4.5.0",
+    "normalize-css": "4.2.0",
+    "sockjs-client": "1.1.1",
+    "selectize": "0.12.3",
+    "components-font-awesome": "4.6.3",
     "spinjs": "2.3.2"
   }
 }

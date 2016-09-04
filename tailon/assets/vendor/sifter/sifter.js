@@ -114,13 +114,14 @@
 	 * @returns {function}
 	 */
 	Sifter.prototype.getScoreFunction = function(search, options) {
-		var self, fields, tokens, token_count;
+		var self, fields, tokens, token_count, nesting;
 
 		self        = this;
 		search      = self.prepareSearch(search, options);
 		tokens      = search.tokens;
 		fields      = search.options.fields;
 		token_count = tokens.length;
+		nesting     = search.options.nesting;
 
 		/**
 		 * Calculates how close of a match the
@@ -157,12 +158,12 @@
 			}
 			if (field_count === 1) {
 				return function(token, data) {
-					return scoreValue(data[fields[0]], token);
+					return scoreValue(getattr(data, fields[0], nesting), token);
 				};
 			}
 			return function(token, data) {
 				for (var i = 0, sum = 0; i < field_count; i++) {
-					sum += scoreValue(data[fields[i]], token);
+					sum += scoreValue(getattr(data, fields[i], nesting), token);
 				}
 				return sum / field_count;
 			};
@@ -223,7 +224,7 @@
 		 */
 		get_field = function(name, result) {
 			if (name === '$score') return result.score;
-			return self.items[result.id][name];
+			return getattr(self.items[result.id], name, options.nesting);
 		};
 
 		// parse options
@@ -412,6 +413,21 @@
 		return a;
 	};
 
+	/**
+	 * A property getter resolving dot-notation
+	 * @param  {Object}  obj     The root object to fetch property on
+	 * @param  {String}  name    The optionally dotted property name to fetch
+	 * @param  {Boolean} nesting Handle nesting or not
+	 * @return {Object}          The resolved property value
+	 */
+	var getattr = function(obj, name, nesting) {
+	    if (!obj || !name) return;
+	    if (!nesting) return obj[name];
+	    var names = name.split(".");
+	    while(names.length && (obj = obj[names.shift()]));
+	    return obj;
+	};
+
 	var trim = function(str) {
 		return (str + '').replace(/^\s+|\s+$|/g, '');
 	};
@@ -425,20 +441,31 @@
 	};
 
 	var DIACRITICS = {
-		'a': '[aÀÁÂÃÄÅàáâãäåĀāąĄ]',
-		'c': '[cÇçćĆčČ]',
-		'd': '[dđĐďĎð]',
-		'e': '[eÈÉÊËèéêëěĚĒēęĘ]',
-		'i': '[iÌÍÎÏìíîïĪī]',
-		'l': '[lłŁ]',
-		'n': '[nÑñňŇńŃ]',
-		'o': '[oÒÓÔÕÕÖØòóôõöøŌō]',
-		'r': '[rřŘ]',
-		's': '[sŠšśŚ]',
-		't': '[tťŤ]',
-		'u': '[uÙÚÛÜùúûüůŮŪū]',
-		'y': '[yŸÿýÝ]',
-		'z': '[zŽžżŻźŹ]'
+		'a': '[aḀḁĂăÂâǍǎȺⱥȦȧẠạÄäÀàÁáĀāÃãÅåąĄÃąĄ]',
+		'b': '[b␢βΒB฿𐌁ᛒ]',
+		'c': '[cĆćĈĉČčĊċC̄c̄ÇçḈḉȻȼƇƈɕᴄＣｃ]',
+		'd': '[dĎďḊḋḐḑḌḍḒḓḎḏĐđD̦d̦ƉɖƊɗƋƌᵭᶁᶑȡᴅＤｄð]',
+		'e': '[eÉéÈèÊêḘḙĚěĔĕẼẽḚḛẺẻĖėËëĒēȨȩĘęᶒɆɇȄȅẾếỀềỄễỂểḜḝḖḗḔḕȆȇẸẹỆệⱸᴇＥｅɘǝƏƐε]',
+		'f': '[fƑƒḞḟ]',
+		'g': '[gɢ₲ǤǥĜĝĞğĢģƓɠĠġ]',
+		'h': '[hĤĥĦħḨḩẖẖḤḥḢḣɦʰǶƕ]',
+		'i': '[iÍíÌìĬĭÎîǏǐÏïḮḯĨĩĮįĪīỈỉȈȉȊȋỊịḬḭƗɨɨ̆ᵻᶖİiIıɪＩｉ]',
+		'j': '[jȷĴĵɈɉʝɟʲ]',
+		'k': '[kƘƙꝀꝁḰḱǨǩḲḳḴḵκϰ₭]',
+		'l': '[lŁłĽľĻļĹĺḶḷḸḹḼḽḺḻĿŀȽƚⱠⱡⱢɫɬᶅɭȴʟＬｌ]',
+		'n': '[nŃńǸǹŇňÑñṄṅŅņṆṇṊṋṈṉN̈n̈ƝɲȠƞᵰᶇɳȵɴＮｎŊŋ]',
+		'o': '[oØøÖöÓóÒòÔôǑǒŐőŎŏȮȯỌọƟɵƠơỎỏŌōÕõǪǫȌȍՕօ]',
+		'p': '[pṔṕṖṗⱣᵽƤƥᵱ]',
+		'q': '[qꝖꝗʠɊɋꝘꝙq̃]',
+		'r': '[rŔŕɌɍŘřŖŗṘṙȐȑȒȓṚṛⱤɽ]',
+		's': '[sŚśṠṡṢṣꞨꞩŜŝŠšŞşȘșS̈s̈]',
+		't': '[tŤťṪṫŢţṬṭƮʈȚțṰṱṮṯƬƭ]',
+		'u': '[uŬŭɄʉỤụÜüÚúÙùÛûǓǔŰűŬŭƯưỦủŪūŨũŲųȔȕ∪]',
+		'v': '[vṼṽṾṿƲʋꝞꝟⱱʋ]',
+		'w': '[wẂẃẀẁŴŵẄẅẆẇẈẉ]',
+		'x': '[xẌẍẊẋχ]',
+		'y': '[yÝýỲỳŶŷŸÿỸỹẎẏỴỵɎɏƳƴ]',
+		'z': '[zŹźẐẑŽžŻżẒẓẔẕƵƶ]'
 	};
 
 	var asciifold = (function() {
