@@ -7,16 +7,12 @@ classifiers = [
     'Development Status :: 4 - Beta',
     'Programming Language :: Python :: 2.7',
     'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.3',
-    'Programming Language :: Python :: 3.4',
-    'Programming Language :: Python :: 3.5',
     'License :: OSI Approved :: BSD License',
     'Intended Audience :: Developers',
-    'Operating System :: POSIX :: Linux',
 ]
 
 requirements = [
-    'tornado>=4.3',
+    'tornado>=4.4.1',
     'sockjs-tornado>=1.0.3',
     'PyYAML>=3.11',
 ]
@@ -38,8 +34,7 @@ kw = {
     'zip_safe': False,
     'entry_points': {
         'console_scripts': [
-            'tailon = tailon.main:main_tailon',
-            'wtee   = tailon.main:main_wtee'
+            'tailon = tailon.main:main',
         ]
     },
 }

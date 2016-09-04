@@ -103,7 +103,7 @@ def add_general_options(parser):
     arg = group.add_argument
     arg('-h', '--help', action='help', help='show this help message and exit')
     arg('-d', '--debug', action='store_true', help='show debug messages')
-    arg('-v', '--version', action='version', version='tailon|wtee version %s' % __version__)
+    arg('-v', '--version', action='version', version='tailon version %s' % __version__)
     arg('--output-encoding', dest='output_encoding', metavar='enc',
         help="encoding for output")
     arg('--input-encoding', dest='input_encoding', default='utf8', metavar='enc',
@@ -129,7 +129,7 @@ def add_ui_options(parser):
 #-----------------------------------------------------------------------------
 # Option parsing: tailon
 #-----------------------------------------------------------------------------
-def parseopts_tailon(args=None):
+def parseopts(args=None):
     description = '''
     Tailon is a web app for looking at and searching through log files.
     '''
@@ -190,38 +190,7 @@ def parseopts_tailon(args=None):
     return parser, parser.parse_args(args)
 
 
-#-----------------------------------------------------------------------------
-# Option parsing: wtee
-#-----------------------------------------------------------------------------
-def parseopts_wtee(args=None):
-    description = '''
-    A webview for piped data.
-    '''
-
-    epilog = '''
-    Example command-line:
-      tail -f /var/log/debug | wtee -b localhost:8080 | nl
-    '''
-
-    parser = argparse.ArgumentParser(
-        formatter_class=utils.CompactHelpFormatter,
-        description=textwrap.dedent(description),
-        epilog=textwrap.dedent(epilog),
-        add_help=False
-    )
-
-    #-------------------------------------------------------------------------
-    arg = add_general_options(parser)
-    add_server_options(parser)
-    add_ui_options(parser)
-
-    return parser, parser.parse_args(args)
-
-
-#-----------------------------------------------------------------------------
-# Config object: tailon
-#-----------------------------------------------------------------------------
-def setup_tailon(opts):
+def setup(opts):
     if opts.config:
         config = parseconfig(opts.config)
         return config
@@ -248,24 +217,6 @@ def setup_tailon(opts):
     return config
 
 
-#-----------------------------------------------------------------------------
-# Config object: wtee
-#-----------------------------------------------------------------------------
-def setup_wtee(opts):
-    port, addr = utils.parseaddr(opts.bind if opts.bind else 'localhost:8080')
-    config = {
-        'port': port,
-        'addr': addr,
-        'relative-root': opts.__dict__.get('relative_root', ''),
-        'debug': opts.__dict__.get('debug', False),
-        'wrap-lines': opts.__dict__.get('wrap-lines', True),
-    }
-    return config
-
-
-#-----------------------------------------------------------------------------
-# Main: shared
-#-----------------------------------------------------------------------------
 def start_server(application, config, client_config):
     httpd = httpserver.HTTPServer(application)
     httpd.listen(config['port'], config['addr'])
@@ -289,11 +240,8 @@ def get_resource_dirs():
     return template_dir, assets_dir
 
 
-#-----------------------------------------------------------------------------
-# Main: tailon
-#-----------------------------------------------------------------------------
-def main_tailon(argv=sys.argv):
-    parser, opts = parseopts_tailon()
+def main(argv=sys.argv):
+    parser, opts = parseopts()
 
     if not opts.config and not opts.files:
         parser.print_help()
@@ -304,7 +252,7 @@ def main_tailon(argv=sys.argv):
     if opts.debug:
         enable_debugging()
 
-    config = setup_tailon(opts)
+    config = setup(opts)
 
     file_lister = utils.FileLister(config['files'], True)
     # TODO: Need to handle situations in which only readable, empty
@@ -320,7 +268,6 @@ def main_tailon(argv=sys.argv):
         # refresh the filelist every time the file select element is focused.
         'refresh_filelist': bool(file_lister.all_dir_names),
         'commands': config['commands'],
-        'tool': 'tailon',
     }
 
     template_dir, assets_dir = get_resource_dirs()
@@ -333,25 +280,4 @@ def main_tailon(argv=sys.argv):
         file_lister=file_lister,
         cmd_control=cmd_control,
     )
-    start_server(application, config, client_config)
-
-
-#-----------------------------------------------------------------------------
-# Main: wtee
-#-----------------------------------------------------------------------------
-def main_wtee(argv=sys.argv):
-    parser, opts = parseopts_wtee()
-
-    if opts.debug:
-        enable_debugging()
-
-    template_dir, assets_dir = get_resource_dirs()
-    config = setup_wtee(opts)
-
-    client_config = {
-        'wrap-lines-initial': config['wrap-lines'],
-        'tool': 'wtee',
-    }
-
-    application = server.WTeeApplication(config, client_config, template_dir, assets_dir)
     start_server(application, config, client_config)

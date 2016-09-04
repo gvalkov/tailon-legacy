@@ -10,12 +10,6 @@ the following commands::
   tail -f | awk
   tail -f | sed
 
-Since version 0.6.0, tailon also comes with the *wtee* command. Much
-like the unix ``tee`` utility, *wtee* duplicates standard input to
-standard output, while also making the piped data viewable on a web
-page. For example::
-
-  tail -f /var/log/debug | wtee | nl
 
 Screenshots
 -----------
@@ -39,13 +33,13 @@ Screenshots
 Installation
 ------------
 
-The latest stable versions of tailon and wtee can be installed from pypi_:
+The latest stable version of tailon can be installed from pypi_:
 
 .. code-block:: bash
 
     $ pip install tailon
 
-The development versions are available on github_ and can also be
+The development version is available on github_ and can also be
 installed with the help of pip:
 
 .. code-block:: bash
@@ -132,47 +126,13 @@ Please note that if the file list includes wildcard characters, they
 will be expanded only once at server-start time.
 
 
-Wtee
-~~~~
-
-The wtee tool does two things:
-
-- Duplicates standard input to standard output.
-- Starts a local http server on which the piped data can be viewed.
-
-Like tailon, wtee's server-side functionality is summarized in its help
-message::
-
-  Usage: wtee [-h] [-d] [-v] [--output-encoding enc] [--input-encoding enc]
-            [-b addr:port] [-r path] [--no-wrap-lines]
-
-  A webview for piped data.
-
-  General options:
-    -h, --help                show this help message and exit
-    -d, --debug               show debug messages
-    -v, --version             show program's version number and exit
-    --output-encoding enc     encoding for output
-    --input-encoding enc      encoding for input and output (default utf8)
-
-  Server options:
-    -b, --bind addr:port      listen on the specified address and port
-    -r, --relative-root path  web app root path
-
-  User-interface options:
-    --no-wrap-lines           initial line-wrapping state (default: true)
-
-  Example command-line:
-    tail -f /var/log/debug | wtee -b localhost:8080 | nl
-
-
 Reverse proxy configuration
 ---------------------------
 
 Nginx
 ~~~~~
 
-1) Run ``tailon`` or ``wtee``, binding it to localhost and specifiying
+1) Run ``tailon``, binding it to localhost and specifiying
    a relative root of your liking. For example:
 
 .. code-block:: bash
@@ -234,22 +194,24 @@ Similar Projects
 - errorlog_
 - `log.io`_
 - rtail_
+- wtee_
 
 
 Attributions
 ------------
 
-Tailon and wtee's favicons ere created from this_ icon.
+Tailon's favicon was created from this_ icon.
 
 
 License
 -------
 
-Tailon and wtee are released under the terms of the `Revised BSD License`_.
+Tailon is released under the terms of the `Revised BSD License`_.
 
 
 .. _pypi:      http://pypi.python.org/pypi/tailon
 .. _github:    https://github.com/gvalkov/tailon
+.. _wtee:      https://github.com/gvalkov/wtee
 .. _clarity:   https://github.com/tobi/clarity
 .. _errorlog:  http://www.psychogenic.com/en/products/Errorlog.php
 .. _`log.io`:  http://logio.org/

@@ -81,53 +81,6 @@ class Fetch(BaseHandler, web.StaticFileHandler):
         return absolute_path
 
 
-class WebsocketWTee(sockjs.tornado.SockJSConnection):
-    def __init__(self, *args, **kw):
-        super(WebsocketWTee, self).__init__(*args, **kw)
-
-        self.last_line = []
-        self.config = self.application.config
-        self.connected = False
-
-        # This is for compatibility between Python 2 and 3.
-        self.stdin_buffer  = getattr(sys.stdin, 'buffer', sys.stdin)
-        self.stdout_buffer = getattr(sys.stdout, 'buffer', sys.stdout)
-
-        fl = fcntl.fcntl(sys.stdin, fcntl.F_GETFL)
-        fcntl.fcntl(sys.stdin, fcntl.F_SETFL, fl | os.O_NONBLOCK)
-
-    def on_open(self, info):
-        self.connected = True
-        io_loop.add_handler(self.stdin_buffer, self.on_stdin, io_loop.READ)
-
-    def on_stdin(self, fd, events):
-        data = fd.read()
-        lines = data.splitlines(True)
-
-        # TODO: Use the value of '--input-encoding' here.
-        decoded_data = data.decode('utf8', errors='replace')
-        lines = decoded_data.splitlines(True)
-        if lines:
-            if not lines[-1].endswith('\n'):
-                self.last_line.append(lines[-1])
-                lines = lines[:-1]
-            else:
-                if self.last_line:
-                    lines[0] = ''.join(self.last_line) + lines[0]
-                    self.last_line = []
-
-        self.stdout_buffer.write(data)
-        self.write_json(lines)
-
-    def on_close(self):
-        self.connected = False
-        io_loop.remove_handler(sys.stdin)
-        log.debug('connection closed')
-
-    def write_json(self, data):
-        return self.send(escape.json_encode(data))
-
-
 class WebsocketTailon(sockjs.tornado.SockJSConnection):
     def __init__(self, *args, **kw):
         super(WebsocketTailon, self).__init__(*args, **kw)
@@ -322,18 +275,5 @@ class TailonApplication(BaseApplication):
 
         WebsocketTailon.application = self
         ws_handler = sockjs.tornado.SockJSRouter(WebsocketTailon, os.path.join('/', self.relative_root, 'ws'))
-        routes += ws_handler.urls
-        return routes, ws_handler
-
-
-class WTeeApplication(BaseApplication):
-    def setup_routes(self):
-        routes = [
-            [r'/assets/(.*)', NonCachingStaticFileHandler, {'path': os.path.join(self.here, 'assets/')}],
-            [r'/', Index, {'template': 'wtee.html'}],
-        ]
-
-        WebsocketWTee.application = self
-        ws_handler = sockjs.tornado.SockJSRouter(WebsocketWTee, os.path.join('/', self.relative_root, 'ws'))
         routes += ws_handler.urls
         return routes, ws_handler

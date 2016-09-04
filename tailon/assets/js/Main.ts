@@ -397,18 +397,16 @@ function changeFileModeScript() {
 }
 
 
-if (window.clientConfig['tool'] === 'tailon') {
-    var m_action_bar = new MinimizedActionBar('#minimized-action-bar');
-    var action_bar = new ActionBar('#action-bar');
+var m_action_bar = new MinimizedActionBar('#minimized-action-bar');
+var action_bar = new ActionBar('#action-bar');
 
-    var cmd_select = new CommandSelect('#command-select select');
-    var file_select = new FileSelect('#file-select select');
-    var script_input = new ScriptInput('#script-input');
+var cmd_select = new CommandSelect('#command-select select');
+var file_select = new FileSelect('#file-select select');
+var script_input = new ScriptInput('#script-input');
 
-    settings.onChange('currentFile', changeFileModeScript);
-    settings.onChange('currentCommand', changeFileModeScript);
-    settings.onChange('currentScript', changeFileModeScript);
+settings.onChange('currentFile', changeFileModeScript);
+settings.onChange('currentCommand', changeFileModeScript);
+settings.onChange('currentScript', changeFileModeScript);
 
-    // Start showing the first file as soon as we're connected.
-    backend.onConnect.addCallback(changeFileModeScript);
-}
+// Start showing the first file as soon as we're connected.
+backend.onConnect.addCallback(changeFileModeScript);
