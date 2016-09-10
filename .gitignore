@@ -23,7 +23,7 @@ assets/css/main.css
 *.egg-info
 __pycache__/
 *.py[oc]
-dist
+/dist
 build
 eggs
 parts
