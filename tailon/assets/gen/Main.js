@@ -132,6 +132,68 @@ var LogView = (function () {
 //         $('#wrap_lines').prop('checked', this.model.get('wrap-lines'));
 //     },
 // });
+var TailonServer = (function () {
+    function TailonServer(apiURL, connectionRetries) {
+        var _this = this;
+        this.apiURL = apiURL;
+        this.connectionRetries = connectionRetries;
+        this.connectionMade = function () {
+            console.log('connected to backend');
+            _this.connected = true;
+            _this.socket.onmessage = _this.dataReceived;
+            _this.onConnect.trigger();
+        };
+        this.connectionLost = function () {
+            _this.onDisconnect.trigger();
+            if (_this.connected) {
+                _this.connected = false;
+                return;
+            }
+            _this.connected = false;
+            if (_this.connectionRetries === 0) {
+                return;
+            }
+            window.setTimeout(function () {
+                this.connectionRetries -= 1;
+                this.connect();
+            }, 1000);
+        };
+        this.dataReceived = function (message) {
+            var data = JSON.parse(message.data);
+            _this.onMessage.trigger(data);
+        };
+        this.sendMessage = function (message, retry) {
+            var connected = _this.connected;
+            var socket = _this.socket;
+            if (retry) {
+                (function () {
+                    if (connected) {
+                        socket.send(JSON.stringify(message));
+                    }
+                    else {
+                        window.setTimeout(arguments.callee, 20);
+                    }
+                })();
+            }
+            else {
+                if (!connected && !retry) {
+                    return;
+                }
+                socket.send(JSON.stringify(message));
+            }
+        };
+        this.connected = false;
+        this.onConnect = new Utils.Signal();
+        this.onDisconnect = new Utils.Signal();
+        this.onMessage = new Utils.Signal();
+    }
+    TailonServer.prototype.connect = function () {
+        this.socket = new SockJS(this.apiURL);
+        this.socket.onopen = this.connectionMade;
+        this.socket.onclose = this.connectionLost;
+    };
+    return TailonServer;
+}());
 var Utils;
 (function (Utils) {
     function formatBytes(size) {
@@ -218,68 +280,6 @@ var Settings;
     }());
     Settings_1.Settings = Settings;
 })(Settings || (Settings = {}));
-var TailonServer = (function () {
-    function TailonServer(apiURL, connectionRetries) {
-        var _this = this;
-        this.apiURL = apiURL;
-        this.connectionRetries = connectionRetries;
-        this.connectionMade = function () {
-            console.log('connected to backend');
-            _this.connected = true;
-            _this.socket.onmessage = _this.dataReceived;
-            _this.onConnect.trigger();
-        };
-        this.connectionLost = function () {
-            _this.onDisconnect.trigger();
-            if (_this.connected) {
-                _this.connected = false;
-                return;
-            }
-            _this.connected = false;
-            if (_this.connectionRetries === 0) {
-                return;
-            }
-            window.setTimeout(function () {
-                this.connectionRetries -= 1;
-                this.connect();
-            }, 1000);
-        };
-        this.dataReceived = function (message) {
-            var data = JSON.parse(message.data);
-            _this.onMessage.trigger(data);
-        };
-        this.sendMessage = function (message, retry) {
-            var connected = _this.connected;
-            var socket = _this.socket;
-            if (retry) {
-                (function () {
-                    if (connected) {
-                        socket.send(JSON.stringify(message));
-                    }
-                    else {
-                        window.setTimeout(arguments.callee, 20);
-                    }
-                })();
-            }
-            else {
-                if (!connected && !retry) {
-                    return;
-                }
-                socket.send(JSON.stringify(message));
-            }
-        };
-        this.connected = false;
-        this.onConnect = new Utils.Signal();
-        this.onDisconnect = new Utils.Signal();
-        this.onMessage = new Utils.Signal();
-    }
-    TailonServer.prototype.connect = function () {
-        this.socket = new SockJS(this.apiURL);
-        this.socket.onopen = this.connectionMade;
-        this.socket.onclose = this.connectionLost;
-    };
-    return TailonServer;
-}());
 // global $:false, jQuery:false
 // jshint laxcomma: true, sub: true
 /// <reference path="../vendor/typings/jquery.d.ts" />
@@ -581,16 +581,14 @@ function changeFileModeScript() {
     backend.sendMessage(message, true);
     logview.clearLines();
 }
-if (window.clientConfig['tool'] === 'tailon') {
-    var m_action_bar = new MinimizedActionBar('#minimized-action-bar');
-    var action_bar = new ActionBar('#action-bar');
-    var cmd_select = new CommandSelect('#command-select select');
-    var file_select = new FileSelect('#file-select select');
-    var script_input = new ScriptInput('#script-input');
-    settings.onChange('currentFile', changeFileModeScript);
-    settings.onChange('currentCommand', changeFileModeScript);
-    settings.onChange('currentScript', changeFileModeScript);
-    // Start showing the first file as soon as we're connected.
-    backend.onConnect.addCallback(changeFileModeScript);
-}
+var m_action_bar = new MinimizedActionBar('#minimized-action-bar');
+var action_bar = new ActionBar('#action-bar');
+var cmd_select = new CommandSelect('#command-select select');
+var file_select = new FileSelect('#file-select select');
+var script_input = new ScriptInput('#script-input');
+settings.onChange('currentFile', changeFileModeScript);
+settings.onChange('currentCommand', changeFileModeScript);
+settings.onChange('currentScript', changeFileModeScript);
+// Start showing the first file as soon as we're connected.
+backend.onConnect.addCallback(changeFileModeScript);
 //# sourceMappingURL=Main.js.map
