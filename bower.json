@@ -2,7 +2,7 @@
   "name": "tailon",
   "private": true,
   "dependencies": {
-    "jquery": "2.1.4",
+    "jquery": "3.1.0",
     "jquery-typewatch": "2.2.2",
     "html5shiv": "3.7.3",
     "normalize-css": "4.2.0",
