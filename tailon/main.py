@@ -24,7 +24,7 @@ from . import utils
 #-----------------------------------------------------------------------------
 # Setup Logging
 #-----------------------------------------------------------------------------
-log = logging.getLogger('tailon')
+log = logging.getLogger()
 ch = logging.StreamHandler()
 ft = logging.Formatter('[+%(relativeCreated)f][%(levelname)5s] %(message)s')
 
