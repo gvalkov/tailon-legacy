@@ -1,10 +1,10 @@
-#!/usr/bin/env python
 # encoding: utf-8
 
 from setuptools import setup
 
+
 classifiers = [
-    'Development Status :: 4 - Beta',
+    'Development Status :: 5 - Production/Stable',
     'Programming Language :: Python :: 2.7',
     'Programming Language :: Python :: 3',
     'License :: OSI Approved :: BSD License',
@@ -19,7 +19,7 @@ requirements = [
 
 kw = {
     'name':             'tailon',
-    'version':          '0.6.0',
+    'version':          '1.0.0',
     'description':      'Webapp for looking at and searching through log files',
     'long_description': open('README.rst').read(),
     'author':           'Georgi Valkov',
