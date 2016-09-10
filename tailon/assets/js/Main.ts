@@ -132,7 +132,7 @@ class FileSelect {
     select: any;
     lastListing: Object;
 
-    constructor(selector: string) {
+    constructor(selector: string, default_file?: string) {
         this.$container = $(selector);
         this.select = this.$container.selectize({
             maxItems: 1,
@@ -142,9 +142,13 @@ class FileSelect {
         })[0].selectize;
 
         this.updateValues();
-        var firstValue = Object.keys(this.select.options)[0];
-        this.select.setValue(firstValue);
-        settings.set<string>('currentFile', firstValue);
+
+        if (! default_file || ! (default_file in this.select.options)) {
+            default_file = Object.keys(this.select.options)[0];
+        }
+
+        this.select.setValue(default_file);
+        settings.set<string>('currentFile', default_file);
 
         // TODO: This is an ugly work around for not being able to figure out
         // how the selectize focus event works.
@@ -216,7 +220,7 @@ class CommandSelect {
     $container: JQuery;
     select: any;
 
-    constructor(selector: string) {
+    constructor(selector: string, default_cmd?: string) {
         this.$container = $(selector);
 
         let all_commands = window.clientConfig['commands'];
@@ -232,9 +236,12 @@ class CommandSelect {
             valueField: 'item',
         })[0].selectize;
 
-        var firstValue = Object.keys(this.select.options)[0];
-        this.select.setValue(firstValue);
-        settings.set<string>('currentCommand', firstValue);
+        if (! default_cmd || ! (default_cmd in this.select.options)) {
+            default_cmd = Object.keys(this.select.options)[0];
+        }
+
+        this.select.setValue(default_cmd);
+        settings.set<string>('currentCommand', default_cmd);
         this.select.on('change', this.onChange);
     }
 
@@ -308,7 +315,7 @@ class ScriptInput {
     $input_el: JQuery;
     placeholders: Object;
 
-    constructor(selector: string) {
+    constructor(selector: string, default_script?: string) {
         this.$container = $(selector);
         this.$input_el = $('#script-input input');
         this.placeholders = {
@@ -317,7 +324,14 @@ class ScriptInput {
             'grep': '.*'
         }
 
-        this.onCommandChange(settings.get('currentCommand'));
+        let current_cmd: string = settings.get('currentCommand');
+
+        // TODO: This needs to be more flexible.
+        if (default_script && current_cmd in this.placeholders) {
+            this.placeholders[current_cmd] = default_script;
+        }
+
+        this.onCommandChange(current_cmd);
         this.$container.on('change', this.onChange);
         settings.onChange('currentCommand', this.onCommandChange.bind(this));
     }
@@ -397,12 +411,17 @@ function changeFileModeScript() {
 }
 
 
+var query_string = Utils.parseQueryString(location.search);
+var default_file = 'file' in query_string ? query_string['file'][0] : null;
+var default_cmd = 'cmd' in query_string ? query_string['cmd'][0] : null;
+var default_script = 'script' in query_string ? query_string['script'][0] : null;
+
 var m_action_bar = new MinimizedActionBar('#minimized-action-bar');
 var action_bar = new ActionBar('#action-bar');
 
-var cmd_select = new CommandSelect('#command-select select');
-var file_select = new FileSelect('#file-select select');
-var script_input = new ScriptInput('#script-input');
+var cmd_select = new CommandSelect('#command-select select', default_cmd);
+var file_select = new FileSelect('#file-select select', default_file);
+var script_input = new ScriptInput('#script-input', default_script);
 
 settings.onChange('currentFile', changeFileModeScript);
 settings.onChange('currentCommand', changeFileModeScript);

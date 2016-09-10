@@ -40,6 +40,25 @@ module Utils {
         });
     }
 
+    export function parseQueryString(str: string): Object {
+        var res = {};
+
+        str.substr(1).split('&').forEach(function(item) {
+            var el = item.split("=");
+
+            var key = el[0];
+            var value = el[1] && decodeURIComponent(el[1]);
+
+            if (key in res) {
+                res[key].push(value);
+            } else {
+                res[key] = [value];
+            }
+        });
+
+        return res;
+    }
+
     interface Callable {
         (T): any;
     }
