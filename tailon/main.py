@@ -68,6 +68,7 @@ def parseconfig(cfg):
         'allow-transfers': raw_config.get('allow-transfers', False),
         'relative-root':   raw_config.get('relative-root', '/'),
         'wrap-lines':      raw_config.get('wrap-lines', True),
+        'tail-lines':      raw_config.get('tail-lines', 10)
     }
 
     if 'files' not in raw_config or not len(raw_config['files']):
