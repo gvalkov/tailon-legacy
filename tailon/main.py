@@ -97,38 +97,7 @@ def parseconfig(cfg):
 
 
 #-----------------------------------------------------------------------------
-# Option parsing: shared
-#-----------------------------------------------------------------------------
-def add_general_options(parser):
-    group = parser.add_argument_group('General options')
-    arg = group.add_argument
-    arg('-h', '--help', action='help', help='show this help message and exit')
-    arg('-d', '--debug', action='store_true', help='show debug messages')
-    arg('-v', '--version', action='version', version='tailon version %s' % __version__)
-    arg('--output-encoding', dest='output_encoding', metavar='enc',
-        help="encoding for output")
-    arg('--input-encoding', dest='input_encoding', default='utf8', metavar='enc',
-        help='encoding for input and output (default utf8)')
-
-    return arg
-
-def add_server_options(parser):
-    group = parser.add_argument_group('Server options')
-    arg = group.add_argument
-    arg('-b', '--bind', metavar='addr:port', help='listen on the specified address and port')
-    arg('-r', '--relative-root', metavar='path', default='', help='web app root path')
-    return arg
-
-def add_ui_options(parser):
-    group = parser.add_argument_group('User-interface options')
-    arg = group.add_argument
-    arg('--no-wrap-lines', dest='wrap-lines', action='store_false',
-        help='initial line-wrapping state (default: true)')
-    return arg
-
-
-#-----------------------------------------------------------------------------
-# Option parsing: tailon
+# Option parsing
 #-----------------------------------------------------------------------------
 def parseopts(args=None):
     description = '''
@@ -176,17 +145,37 @@ def parseopts(args=None):
         help='list of files or file wildcards to expose')
 
     #-------------------------------------------------------------------------
-    arg_general = add_general_options(parser)
+    group = parser.add_argument_group('General options')
+    arg = group.add_argument
+    arg('-h', '--help', action='help', help='show this help message and exit')
+    arg('-d', '--debug', action='store_true', help='show debug messages')
+    arg('-v', '--version', action='version', version='tailon version %s' % __version__)
 
-    arg = add_server_options(parser)
+    arg('--output-encoding', dest='output_encoding', metavar='enc',
+        help="encoding for output")
+
+    arg('--input-encoding', dest='input_encoding', default='utf8', metavar='enc',
+        help='encoding for input and output (default utf8)')
+
+    #-------------------------------------------------------------------------
+    group = parser.add_argument_group('Server options')
+    arg = group.add_argument
+    arg('-b', '--bind', metavar='addr:port', help='listen on the specified address and port')
+    arg('-r', '--relative-root', metavar='path', default='', help='web app root path')
     arg('-a', '--allow-transfers', action='store_true',  help='allow log file downloads')
+
     arg('-t', '--tail-lines', default=10, type=int, metavar='num',
         help='number of lines to tail initially')
+
     arg('-m', '--commands', nargs='*', metavar='cmd',
         choices=commands.ToolPaths.command_names, default=['tail', 'grep', 'awk'],
         help='allowed commands (default: tail grep awk)')
 
-    add_ui_options(parser)
+    #-------------------------------------------------------------------------
+    group = parser.add_argument_group('User-interface options')
+    arg = group.add_argument
+    arg('--no-wrap-lines', dest='wrap-lines', action='store_false',
+        help='initial line-wrapping state (default: true)')
 
     return parser, parser.parse_args(args)
 
