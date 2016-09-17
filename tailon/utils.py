@@ -100,3 +100,15 @@ def parseaddr(arg):
 
 def remove_escapes(string):
     return re.sub(r'\x1B\[(?:[0-9]{1,2}(?:;[0-9]{1,2})?)?[m|K]', '', string)
+
+
+def line_buffer(lines, last_line):
+    if not lines[-1].endswith('\n'):
+        last_line.append(lines[-1])
+        return lines[:-1]
+    elif last_line:
+        lines[0] = ''.join(last_line) + lines[0]
+        last_line.clear()
+        return lines
+    else:
+        return lines

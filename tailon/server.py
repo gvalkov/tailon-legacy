@@ -10,6 +10,8 @@ from datetime import datetime
 import sockjs.tornado
 from tornado import web, ioloop, process, escape
 
+from . import utils
+
 
 STREAM = process.Subprocess.STREAM
 log = logging.getLogger('tailon')
@@ -89,7 +91,10 @@ class WebsocketTailon(sockjs.tornado.SockJSConnection):
         self.file_lister = self.application.file_lister
         self.cmd_control = self.application.cmd_control
         self.initial_tail_lines = self.config['tail-lines']
-        self.last_line = []
+
+        self.last_stdout_line = []
+        self.last_stderr_line = []
+
         self.processes = {
             'tail': None,
             'grep': None,
@@ -111,14 +116,7 @@ class WebsocketTailon(sockjs.tornado.SockJSConnection):
         if not lines:
             return
 
-        if not lines[-1].endswith('\n'):
-            self.last_line.append(lines[-1])
-            lines = lines[:-1]
-        else:
-            if self.last_line:
-                lines[0] = ''.join(self.last_line) + lines[0]
-                self.last_line = []
-
+        lines = utils.line_buffer(lines, self.last_stdout_line)
         self.write_json(lines)
 
     def stderr_callback(self, path, stream, data):
