@@ -124,13 +124,21 @@ class WebsocketTailon(sockjs.tornado.SockJSConnection):
         if not self.connected:
             return
 
-        text = data.decode('utf8', errors='replace')
-        if text.endswith(': file truncated\n'):
-            text = ['%s - %s - truncated' % (datetime.now(), path)]
-        else:
-            text = text.splitlines()
+        data = data.decode('utf8', errors='replace')
+        lines = data.splitlines(True)
 
-        msg = {'err': text}
+        if not lines:
+            return
+
+        lines = utils.line_buffer(lines, self.last_stderr_line)
+
+        if not lines:
+            return
+
+        if lines[-1].endswith(': file truncated\n'):
+            lines[-1] = ['%s - %s - truncated' % (datetime.now(), path)]
+
+        msg = {'err': lines}
         self.write_json(msg)
 
     def killall(self):

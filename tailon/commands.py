@@ -34,8 +34,9 @@ class ToolPaths:
 
 #-----------------------------------------------------------------------------
 class CommandControl:
-    def __init__(self, toolpaths):
+    def __init__(self, toolpaths, follow_names=False):
         self.toolpaths = toolpaths
+        self.follow_names = follow_names
 
     def awk(self, script, fn, stdout, stderr, **kw):
         cmd = [self.toolpaths.cmd_awk, '--sandbox', script]
@@ -62,8 +63,9 @@ class CommandControl:
         return proc
 
     def tail(self, n, fn, stdout, stderr, **kw):
-        cmd = [self.toolpaths.cmd_tail, '-n', str(n), '-f', fn]
-        proc = process.Subprocess(cmd, stdout=stdout, stderr=stderr, **kw)
+        flag_follow = '-F' if self.follow_names else '-f'
+        cmd = [self.toolpaths.cmd_tail, '-n', str(n), flag_follow, fn]
+        proc = process.Subprocess(cmd, stdout=stdout, stderr=stderr, bufsize=1, **kw)
         log.debug('running tail %s, pid: %s', cmd, proc.proc.pid)
         return proc
 

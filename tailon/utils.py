@@ -28,17 +28,12 @@ class CompactHelpFormatter(argparse.RawTextHelpFormatter):
             return res
 
 
-class FileLister:
-    def __init__(self, groups, use_directory_cache=True):
-        self.groups = groups
+class FileUtils:
+    def __init__(self, use_directory_cache=True):
         self.use_directory_cache = use_directory_cache
+
         self.directory_cache = {}
         self.directory_mtime = {}
-
-        self.files = collections.OrderedDict()
-        self.all_file_names = set()
-        self.all_dir_names = set()
-        self.refresh()
 
     def listdir(self, path):
         if not self.use_directory_cache:
@@ -46,16 +41,50 @@ class FileLister:
 
         mtime = os.stat(path).st_mtime
         if mtime > self.directory_mtime.get(path, 0):
-            files = listdir_abspath(path)
+            files = self.listdir_abspath(path)
             self.directory_cache[path] = files
             self.directory_mtime[path] = mtime
         return self.directory_cache[path]
+
+    @staticmethod
+    def listdir_abspath(path, files_only=True):
+        paths = [os.path.join(path, i) for i in os.listdir(path)]
+        if not files_only:
+            return paths
+        return [path for path in paths if os.path.isfile(path)]
+
+    @staticmethod
+    def statfiles(files, allow_missing=False):
+        for path in files:
+            if not os.access(path, os.R_OK) and not allow_missing:
+                continue
+
+            if os.path.exists(path):
+                st = os.stat(path)
+                yield path, st.st_size, st.st_mtime
+            elif allow_missing:
+                yield path, None, None
+            else:
+                continue
+
+
+class FileLister:
+    def __init__(self, lister, groups, include_missing=False):
+        self.lister = lister
+        self.groups = groups
+        self.include_missing = include_missing
+
+        self.files = collections.OrderedDict()
+        self.all_file_names = set()
+        self.all_dir_names = set()
+
+        self.refresh()
 
     def is_path_allowed(self, path):
         return path in self.all_file_names
 
     def refresh(self):
-        log.debug('listing files')
+        log.debug('refreshing group file listings')
         self.files = collections.OrderedDict()
         self.all_dir_names = set()
 
@@ -64,30 +93,17 @@ class FileLister:
             for path in paths:
                 if os.path.isdir(path):
                     self.all_dir_names.add(path)
-                    files.extend(self.listdir(path))
+                    files.extend(self.lister.listdir(path))
                 else:
                     files.append(path)
-            self.files[group] = list(statfiles(files))
+
+            self.files[group] = list(self.lister.statfiles(files, self.include_missing))
 
         afn = (i[0] for values in self.files.values() for i in values)
         afn = {os.path.abspath(i) for i in afn}
+
         self.has_changed = (afn != self.all_file_names)
         self.all_file_names = afn
-
-
-def listdir_abspath(path, files_only=True):
-    paths = [os.path.join(path, i) for i in os.listdir(path)]
-    if not files_only:
-        return paths
-    return [path for path in paths if os.path.isfile(path)]
-
-
-def statfiles(files):
-    for path in files:
-        if not os.access(path, os.R_OK):
-            continue
-        st = os.stat(path)
-        yield path, st.st_size, st.st_mtime
 
 
 def parseaddr(arg):

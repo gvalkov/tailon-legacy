@@ -66,6 +66,7 @@ def parseconfig(cfg):
         'debug': raw_config.get('debug', False),
         'commands': raw_config.get('commands', ['tail', 'grep', 'awk']),
         'allow-transfers': raw_config.get('allow-transfers', False),
+        'follow-names':    raw_config.get('follow-names', False),
         'relative-root':   raw_config.get('relative-root', '/'),
         'wrap-lines':      raw_config.get('wrap-lines', True),
         'tail-lines':      raw_config.get('tail-lines', 10)
@@ -108,6 +109,7 @@ def parseopts(args=None):
     Example config file:
       bind: 0.0.0.0:8080      # address and port to bind on
       allow-transfers: true   # allow log file downloads
+      follow-names: false     # allow tailing of not-yet-existent files
       relative-root: /tailon  # web app root path (default: '')
       commands: [tail, grep]  # allowed commands
       tail-lines: 10          # number of lines to tail initially
@@ -163,6 +165,7 @@ def parseopts(args=None):
     arg('-b', '--bind', metavar='addr:port', help='listen on the specified address and port')
     arg('-r', '--relative-root', metavar='path', default='', help='web app root path')
     arg('-a', '--allow-transfers', action='store_true',  help='allow log file downloads')
+    arg('-F', '--follow-names', action='store_true', help='allow tailing of not-yet-existent files')
 
     arg('-t', '--tail-lines', default=10, type=int, metavar='num',
         help='number of lines to tail initially')
@@ -192,19 +195,27 @@ def setup(opts):
         'files': {'__ungrouped__': []},
         'commands': opts.commands,
         'allow-transfers': opts.allow_transfers,
+        'follow-names': opts.follow_names,
         'relative-root': opts.__dict__.get('relative_root', ''),
         'debug': opts.__dict__.get('debug', False),
         'tail-lines': opts.__dict__.get('tail_lines', 10),
         'wrap-lines': opts.__dict__.get('wrap-lines', True),
     }
 
-    for entry in opts.files:
+    if config['follow-names']:
+        config['files']['__ungrouped__'] = opts.files  # These don't need to exist.
+    else:
+        config['files']['__ungrouped__'] = list(filter_cli_files(opts.files))
+
+    return config
+
+
+def filter_cli_files(files):
+    for entry in files:
         for path in glob.glob(entry):
             if path.startswith('./'):
                 path = path.replace('./', '', 1)
-            config['files']['__ungrouped__'].append(path)
-
-    return config
+            yield path
 
 
 def start_server(application, config, client_config):
@@ -244,10 +255,12 @@ def main(argv=sys.argv):
 
     config = setup(opts)
 
-    file_lister = utils.FileLister(config['files'], True)
+    file_utils = utils.FileUtils(use_directory_cache=True)
+    file_lister = utils.FileLister(file_utils, config['files'], config['follow-names'])
+
     # TODO: Need to handle situations in which only readable, empty
     # directories were given.
-    if not file_lister.all_file_names:
+    if not file_lister.all_file_names and not config['follow-names']:
         print('Error: none of the given files or directories exist or are readable.', file=sys.stderr)
         sys.exit(1)
 
@@ -263,7 +276,7 @@ def main(argv=sys.argv):
     template_dir, assets_dir = get_resource_dirs()
 
     toolpaths = commands.ToolPaths()
-    cmd_control = commands.CommandControl(toolpaths)
+    cmd_control = commands.CommandControl(toolpaths, config['follow-names'])
 
     application = server.TailonApplication(
         config, client_config, template_dir, assets_dir,
