@@ -75,7 +75,8 @@ Tailon's server-side functionality is summarized entirely in its help message::
 
    Usage: tailon [-c path] [-f path [path ...]] [-h] [-d] [-v]
                  [--output-encoding enc] [--input-encoding enc] [-b addr:port]
-                 [-r path] [-a] [-t num] [-m [cmd [cmd ...]]] [--no-wrap-lines]
+                 [-r path] [-a] [-f] [-t num] [-m [cmd [cmd ...]]]
+                 [--no-wrap-lines]
 
    Tailon is a web app for looking at and searching through log files.
 
@@ -94,6 +95,7 @@ Tailon's server-side functionality is summarized entirely in its help message::
      -b, --bind addr:port            listen on the specified address and port
      -r, --relative-root path        web app root path
      -a, --allow-transfers           allow log file downloads
+     -F, --follow-names              allow tailing of not-yet-existent files
      -t, --tail-lines num            number of lines to tail initially
      -m, --commands [cmd [cmd ...]]  allowed commands (default: tail grep awk)
 
@@ -103,6 +105,7 @@ Tailon's server-side functionality is summarized entirely in its help message::
    Example config file:
      bind: 0.0.0.0:8080      # address and port to bind on
      allow-transfers: true   # allow log file downloads
+     follow-names: false     # allow tailing of not-yet-existent files
      relative-root: /tailon  # web app root path (default: '')
      commands: [tail, grep]  # allowed commands
      tail-lines: 10          # number of lines to tail initially
@@ -121,6 +124,7 @@ Tailon's server-side functionality is summarized entirely in its help message::
      tailon -f '/var/log/cron*' -a -b localhost:8080
      tailon -f /var/log/
      tailon -c config.yaml -d
+
 
 Please note that if the file list includes wildcard characters, they
 will be expanded only once at server-start time.

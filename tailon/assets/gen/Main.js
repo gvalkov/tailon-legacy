@@ -234,6 +234,22 @@ var Utils;
         });
     }
     Utils.escapeHtml = escapeHtml;
+    function parseQueryString(str) {
+        var res = {};
+        str.substr(1).split('&').forEach(function (item) {
+            var el = item.split("=");
+            var key = el[0];
+            var value = el[1] && decodeURIComponent(el[1]);
+            if (key in res) {
+                res[key].push(value);
+            }
+            else {
+                res[key] = [value];
+            }
+        });
+        return res;
+    }
+    Utils.parseQueryString = parseQueryString;
     var Signal = (function () {
         function Signal() {
             this.listeners = [];
@@ -366,7 +382,7 @@ function onResize() {
 $(window).resize(onResize);
 onResize();
 var FileSelect = (function () {
-    function FileSelect(selector) {
+    function FileSelect(selector, default_file) {
         var _this = this;
         this.refreshSelect = function () {
             var updateValues = _this.updateValues;
@@ -420,9 +436,11 @@ var FileSelect = (function () {
             optgroupField: 'group'
         })[0].selectize;
         this.updateValues();
-        var firstValue = Object.keys(this.select.options)[0];
-        this.select.setValue(firstValue);
-        settings.set('currentFile', firstValue);
+        if (!default_file || !(default_file in this.select.options)) {
+            default_file = Object.keys(this.select.options)[0];
+        }
+        this.select.setValue(default_file);
+        settings.set('currentFile', default_file);
         // TODO: This is an ugly work around for not being able to figure out
         // how the selectize focus event works.
         // this.select.on('focus', this.onFocus);
@@ -435,7 +453,7 @@ var FileSelect = (function () {
     return FileSelect;
 }());
 var CommandSelect = (function () {
-    function CommandSelect(selector) {
+    function CommandSelect(selector, default_cmd) {
         this.$container = $(selector);
         var all_commands = window.clientConfig['commands'];
         all_commands = all_commands.map(function (x) {
@@ -448,9 +466,11 @@ var CommandSelect = (function () {
             labelField: 'item',
             valueField: 'item'
         })[0].selectize;
-        var firstValue = Object.keys(this.select.options)[0];
-        this.select.setValue(firstValue);
-        settings.set('currentCommand', firstValue);
+        if (!default_cmd || !(default_cmd in this.select.options)) {
+            default_cmd = Object.keys(this.select.options)[0];
+        }
+        this.select.setValue(default_cmd);
+        settings.set('currentCommand', default_cmd);
         this.select.on('change', this.onChange);
     }
     CommandSelect.prototype.onChange = function (value) {
@@ -507,7 +527,7 @@ var MinimizedActionBar = (function () {
     return MinimizedActionBar;
 }());
 var ScriptInput = (function () {
-    function ScriptInput(selector) {
+    function ScriptInput(selector, default_script) {
         var _this = this;
         this.onCommandChange = function (command) {
             if (command in _this.placeholders) {
@@ -540,7 +560,12 @@ var ScriptInput = (function () {
             'sed': 's/.*/&/',
             'grep': '.*'
         };
-        this.onCommandChange(settings.get('currentCommand'));
+        var current_cmd = settings.get('currentCommand');
+        // TODO: This needs to be more flexible.
+        if (default_script && current_cmd in this.placeholders) {
+            this.placeholders[current_cmd] = default_script;
+        }
+        this.onCommandChange(current_cmd);
         this.$container.on('change', this.onChange);
         settings.onChange('currentCommand', this.onCommandChange.bind(this));
     }
@@ -581,11 +606,15 @@ function changeFileModeScript() {
     backend.sendMessage(message, true);
     logview.clearLines();
 }
+var query_string = Utils.parseQueryString(location.search);
+var default_file = 'file' in query_string ? query_string['file'][0] : null;
+var default_cmd = 'cmd' in query_string ? query_string['cmd'][0] : null;
+var default_script = 'script' in query_string ? query_string['script'][0] : null;
 var m_action_bar = new MinimizedActionBar('#minimized-action-bar');
 var action_bar = new ActionBar('#action-bar');
-var cmd_select = new CommandSelect('#command-select select');
-var file_select = new FileSelect('#file-select select');
-var script_input = new ScriptInput('#script-input');
+var cmd_select = new CommandSelect('#command-select select', default_cmd);
+var file_select = new FileSelect('#file-select select', default_file);
+var script_input = new ScriptInput('#script-input', default_script);
 settings.onChange('currentFile', changeFileModeScript);
 settings.onChange('currentCommand', changeFileModeScript);
 settings.onChange('currentScript', changeFileModeScript);

@@ -1,8 +1,8 @@
 Changelog
 ---------
 
-Development
-===========
+1.1.0 (Sep 17, 2016)
+====================
 
 - Add the ability to set the initial file, command and command script through
   the query string. For example:
