@@ -1,11 +1,15 @@
 bind: 0.0.0.0:8080      # address and port to bind on
-allow-transfers: true   # allow file downloads
-relative-root: /tailon/ # web app root path (default: '')
-commands: [tail, grep, awk] # allowed commands
+allow-transfers: true   # allow log file downloads
+follow-names: false     # allow tailing of not-yet-existent files
+relative-root: /tailon  # web app root path (default: '')
+commands: [tail, grep]  # allowed commands
+tail-lines: 10          # number of lines to tail initially
+wrap-lines: true        # initial line-wrapping state
 
 files:
   - '/var/log/messages'
   - '/var/log/nginx/*.log'
   - '/var/log/xorg.[0-10].log'
-  - 'cron':             # sub-section
+  - '/var/log/nginx/'   # all files in this directory
+  - 'cron':             # it's possible to add sub-sections
       - '/var/log/cron*'
