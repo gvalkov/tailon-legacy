@@ -124,7 +124,7 @@ def line_buffer(lines, last_line):
         return lines[:-1]
     elif last_line:
         lines[0] = ''.join(last_line) + lines[0]
-        last_line.clear()
+        del last_line[:]  # list.clear() is with py >= 3.3
         return lines
     else:
         return lines
