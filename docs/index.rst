@@ -178,7 +178,7 @@ script that has the same effect as the above attempt for shell injection::
   r /etc/secrets
 
 The default set of enabled commands - tail, grep and awk - should be safe
-to use. GNU awk is ran in sandbox_ mode, which prevents scripts from
+to use. GNU awk is run in sandbox_ mode, which prevents scripts from
 accessing your system, either through the ``system()`` builtin or by using
 input redirection.
 
