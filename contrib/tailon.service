@@ -1,0 +1,9 @@
+[Unit]
+Description=Tailon Service
+
+[Service]
+Type=simple
+ExecStart=/path/to/tailon -c /path/to/tailon.yaml
+
+[Install]
+WantedBy=multi-user.target
