@@ -48,7 +48,7 @@ class LogView {
         }
 
         var scrollAfterWrite = this.isAtBottom();
-        let fragment = <HTMLElement>document.createDocumentFragment();
+        let fragment: DocumentFragment = document.createDocumentFragment();
 
         // Create spans from all elements and add them to a temporary DOM.
         for (var i = 0; i < spans.length; i++) {
@@ -59,7 +59,8 @@ class LogView {
 
         this.container.appendChild(fragment);
         this.trimHistory();
-        fragment.innerHTML = '';
+
+        //fragment.innerHTML = '';
 
         if (this.autoScroll && scrollAfterWrite) {
             this.scroll();
@@ -74,10 +75,9 @@ class LogView {
         this.lastSpan.className = this.lastSpanClasses + ' log-entry-current';
     }
 
-    createSpans(message: string[]) {
+    createSpans(message: string[] | any ) {
         let spans: HTMLElement[] = [];
 
-        // Just a list of lines that we write to the logview.
         if (Array.isArray(message)) {
             for (var i=0; i<message.length; i++) {
                 var line = Utils.escapeHtml(message[i]);
@@ -89,14 +89,6 @@ class LogView {
                 let line: string = message['err'][i];
                 spans.push(this.createLogNoticeSpan(line));
             }
-        } else {
-            $.each(message, function (fn, payload) {
-                for (var i=0; i<payload.length; i++) {
-                    var line = Utils.escapeHtml(payload[i]);
-                    line = line.replace(/\n$/, '');
-                    spans.push(this.createLogEntrySpan(line));
-                }
-            });
         }
 
         this.writeSpans(spans);
