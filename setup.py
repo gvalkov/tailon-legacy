@@ -11,6 +11,7 @@ classifiers = [
 
 requirements = [
     'tornado>=4.5.1',
+    'tornado-http-auth>=1.0.0',
     'sockjs-tornado>=1.0.3',
     'PyYAML>=3.11',
 ]

@@ -1,6 +1,17 @@
 Changelog
 ---------
 
+1.2.0 (May 23, 2017)
+====================
+
+- Add optional basic and digest HTTP authentication using tornado-http-auth_.
+  This feature can be enabled with the ``-p/--http-auth`` and ``-u/--user``
+  command-line switches or the ``http-auth`` and ``user`` config file keys.
+  For example:
+
+     tailon -f /var/log --http-auth digest -u joe:secret1 -u bob:secret2
+
+
 1.1.0 (Sep 17, 2016)
 ====================
 
@@ -31,3 +42,4 @@ Changelog
 
 
 .. _wtee: https://github.com/gvalkov/wtee
+.. _tornado-http-auth: https://github.com/gvalkov/tornado-http-auth

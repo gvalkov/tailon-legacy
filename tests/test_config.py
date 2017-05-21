@@ -72,6 +72,7 @@ def test_simple(tempfiles):
     assert cfg['addr'] == '0.0.0.0'
     assert cfg['allow-transfers'] is True
 
+
 def test_groups(tempfiles):
     config = '''\
     files:
@@ -97,6 +98,7 @@ def test_groups(tempfiles):
     c1 = {pjoin(tempfiles.dir, '3.log')}
     c2 = set(cfg['files']['group2'])
     assert c1 == c2
+
 
 def test_groups_depth(tempfiles):
     config = '''\

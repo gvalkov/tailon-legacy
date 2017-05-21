@@ -73,58 +73,63 @@ listening on http://localhost:8080.
 
 Tailon's server-side functionality is summarized entirely in its help message::
 
-   Usage: tailon [-c path] [-f path [path ...]] [-h] [-d] [-v]
-                 [--output-encoding enc] [--input-encoding enc] [-b addr:port]
-                 [-r path] [-a] [-f] [-t num] [-m [cmd [cmd ...]]]
-                 [--no-wrap-lines]
+    Usage: tailon [-c path] [-f path [path ...]] [-h] [-d] [-v]
+                  [--output-encoding enc] [--input-encoding enc] [-b addr:port]
+                  [-r path] [-p type] [-u user:pass] [-a] [-f] [-t num]
+                  [-m [cmd [cmd ...]]] [--no-wrap-lines]
 
-   Tailon is a web app for looking at and searching through log files.
+    Tailon is a web app for looking at and searching through log files.
 
-   Required options:
-     -c, --config path               yaml config file
-     -f, --files path [path ...]     list of files or file wildcards to expose
+    Required options:
+      -c, --config path               yaml config file
+      -f, --files path [path ...]     list of files or file wildcards to expose
 
-   General options:
-     -h, --help                      show this help message and exit
-     -d, --debug                     show debug messages
-     -v, --version                   show program's version number and exit
-     --output-encoding enc           encoding for output
-     --input-encoding enc            encoding for input and output (default utf8)
+    General options:
+      -h, --help                      show this help message and exit
+      -d, --debug                     show debug messages
+      -v, --version                   show program's version number and exit
+      --output-encoding enc           encoding for output
+      --input-encoding enc            encoding for input and output (default utf8)
 
-   Server options:
-     -b, --bind addr:port            listen on the specified address and port
-     -r, --relative-root path        web app root path
-     -a, --allow-transfers           allow log file downloads
-     -F, --follow-names              allow tailing of not-yet-existent files
-     -t, --tail-lines num            number of lines to tail initially
-     -m, --commands [cmd [cmd ...]]  allowed commands (default: tail grep awk)
+    Server options:
+      -b, --bind addr:port            listen on the specified address and port
+      -r, --relative-root path        web app root path
+      -p, --http-auth type            enable http authentication (digest or basic)
+      -u, --user user:pass            http authentication username and password
+      -a, --allow-transfers           allow log file downloads
+      -F, --follow-names              allow tailing of not-yet-existent files
+      -t, --tail-lines num            number of lines to tail initially
+      -m, --commands [cmd [cmd ...]]  allowed commands (default: tail grep awk)
 
-   User-interface options:
-     --no-wrap-lines                 initial line-wrapping state (default: true)
+    User-interface options:
+      --no-wrap-lines                 initial line-wrapping state (default: true)
 
-   Example config file:
-     bind: 0.0.0.0:8080      # address and port to bind on
-     allow-transfers: true   # allow log file downloads
-     follow-names: false     # allow tailing of not-yet-existent files
-     relative-root: /tailon  # web app root path (default: '')
-     commands: [tail, grep]  # allowed commands
-     tail-lines: 10          # number of lines to tail initially
-     wrap-lines: true        # initial line-wrapping state
+    Example config file:
+      bind: 0.0.0.0:8080      # address and port to bind on
+      allow-transfers: true   # allow log file downloads
+      follow-names: false     # allow tailing of not-yet-existent files
+      relative-root: /tailon  # web app root path (default: '')
+      commands: [tail, grep]  # allowed commands
+      tail-lines: 10          # number of lines to tail initially
+      wrap-lines: true        # initial line-wrapping state
 
-     files:
-       - '/var/log/messages'
-       - '/var/log/nginx/*.log'
-       - '/var/log/xorg.[0-10].log'
-       - '/var/log/nginx/'   # all files in this directory
-       - 'cron':             # it's possible to add sub-sections
-           - '/var/log/cron*'
+      files:
+        - '/var/log/messages'
+        - '/var/log/nginx/*.log'
+        - '/var/log/xorg.[0-10].log'
+        - '/var/log/nginx/'   # all files in this directory
+        - 'cron':             # it's possible to add sub-sections
+            - '/var/log/cron*'
 
-   Example command-line:
-     tailon -f /var/log/messages /var/log/debug -m tail
-     tailon -f '/var/log/cron*' -a -b localhost:8080
-     tailon -f /var/log/
-     tailon -c config.yaml -d
+      http-auth: basic        # enable authentication (optional)
+      users:                  # password access (optional)
+        user1: pass1
 
+    Example command-line:
+      tailon -f /var/log/messages /var/log/debug -m tail
+      tailon -f '/var/log/cron*' -a -b localhost:8080
+      tailon -f /var/log/ -p basic -u user1:pass1 -u user2:pass2
+      tailon -c config.yaml -d
 
 Please note that if the file list includes wildcard characters, they
 will be expanded only once at server-start time.
@@ -181,6 +186,15 @@ The default set of enabled commands - tail, grep and awk - should be safe
 to use. GNU awk is run in sandbox_ mode, which prevents scripts from
 accessing your system, either through the ``system()`` builtin or by using
 input redirection.
+
+By default, tailon is accessible to anyone who knows the server address
+and port. One way to restrict access is by using the built-in basic and
+digest http authentication. This can be enabled on the command-line with:
+
+.. code-block:: bash
+
+    $ tailon -p basic  -u joe:secret1 -u bob:secret2
+    $ tailon -p digest -u joe:secret1 -u bob:secret2
 
 
 Development

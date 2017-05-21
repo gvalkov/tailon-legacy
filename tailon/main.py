@@ -68,6 +68,8 @@ def parseconfig(cfg):
         'allow-transfers': raw_config.get('allow-transfers', False),
         'follow-names':    raw_config.get('follow-names', False),
         'relative-root':   raw_config.get('relative-root', '/'),
+        'http-auth':       raw_config.get('http-auth', False),
+        'users':           raw_config.get('users', {}),
         'wrap-lines':      raw_config.get('wrap-lines', True),
         'tail-lines':      raw_config.get('tail-lines', 10)
     }
@@ -123,10 +125,14 @@ def parseopts(args=None):
         - 'cron':             # it's possible to add sub-sections
             - '/var/log/cron*'
 
+      http-auth: basic        # enable authentication (optional)
+      users:                  # password access (optional)
+        user1: pass1
+
     Example command-line:
       tailon -f /var/log/messages /var/log/debug -m tail
       tailon -f '/var/log/cron*' -a -b localhost:8080
-      tailon -f /var/log/
+      tailon -f /var/log/ -p basic -u user1:pass1 -u user2:pass2
       tailon -c config.yaml -d
     '''
 
@@ -164,6 +170,10 @@ def parseopts(args=None):
     arg = group.add_argument
     arg('-b', '--bind', metavar='addr:port', help='listen on the specified address and port')
     arg('-r', '--relative-root', metavar='path', default='', help='web app root path')
+    arg('-p', '--http-auth', metavar='type', choices=['basic', 'digest'],
+        help='enable http authentication (digest or basic)')
+    arg('-u', '--user', metavar='user:pass', action='append', dest='users', default=[],
+        help='http authentication username and password')
     arg('-a', '--allow-transfers', action='store_true',  help='allow log file downloads')
     arg('-F', '--follow-names', action='store_true', help='allow tailing of not-yet-existent files')
 
@@ -195,6 +205,8 @@ def setup(opts):
         'files': {'__ungrouped__': []},
         'commands': opts.commands,
         'allow-transfers': opts.allow_transfers,
+        'http-auth': opts.__dict__.get('http_auth', False),
+        'users': dict((i.split(':') for i in opts.users)),
         'follow-names': opts.follow_names,
         'relative-root': opts.__dict__.get('relative_root', ''),
         'debug': opts.__dict__.get('debug', False),
@@ -232,6 +244,7 @@ def start_server(application, config, client_config):
     loop.add_callback(log.info, msg)
     loop.start()
 
+
 def get_resource_dirs():
     try:
         template_dir = pkg_resources.resource_filename('tailon', 'templates')
@@ -246,7 +259,7 @@ def main(argv=sys.argv):
 
     if not opts.config and not opts.files:
         parser.print_help()
-        msg = 'Error: must specify file list on the command line or through the config file.'
+        msg = 'error: must specify file list on the command line or through the config file'
         print('\n%s' % msg, file=sys.stderr)
         sys.exit(1)
 
@@ -261,7 +274,11 @@ def main(argv=sys.argv):
     # TODO: Need to handle situations in which only readable, empty
     # directories were given.
     if not file_lister.all_file_names and not config['follow-names']:
-        print('Error: none of the given files or directories exist or are readable.', file=sys.stderr)
+        print('error: none of the given files or directories exist or are readable', file=sys.stderr)
+        sys.exit(1)
+
+    if config['http-auth'] and not config['users']:
+        print('error: http authentication enabled but no users specified (see the --user option)', file=sys.stderr)
         sys.exit(1)
 
     client_config = {

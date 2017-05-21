@@ -1,14 +1,13 @@
 # -*- coding: utf-8; -*-
 
 import os
-import sys
-import fcntl
 import logging
 from functools import partial
 from datetime import datetime
 
 import sockjs.tornado
 from tornado import web, ioloop, process, escape
+from tornado_http_auth import BasicAuthMixin, DigestAuthMixin
 
 from . import utils
 
@@ -24,6 +23,10 @@ class BaseHandler(web.RequestHandler):
         super(BaseHandler, self).__init__(*args, **kw)
         self.config = self.application.config
         self.client_config = self.application.client_config
+
+    # Will be aliased to prepare() if authentication is enabled (see setup_routes()).
+    def _prepare(self):
+        self.get_authenticated_user(self.config['users'].get, realm='Protected')
 
 
 class Index(BaseHandler):
@@ -264,6 +267,7 @@ class BaseApplication(web.Application):
 
         super(BaseApplication, self).__init__(routes, **settings)
 
+
 #-----------------------------------------------------------------------------
 class TailonApplication(BaseApplication):
     def __init__(self, *args, **kw):
@@ -271,7 +275,15 @@ class TailonApplication(BaseApplication):
         self.cmd_control = kw.pop('cmd_control')
         super(TailonApplication, self).__init__(*args, **kw)
 
+    def enable_authentication(self, auth_type):
+        mixin = {'digest':  DigestAuthMixin, 'basic': BasicAuthMixin}[auth_type]
+        BaseHandler.__bases__ = (web.RequestHandler, mixin)
+        BaseHandler.prepare = BaseHandler._prepare
+
     def setup_routes(self):
+        if self.config['http-auth']:
+            self.enable_authentication(self.config['http-auth'])
+
         routes = [
             [r'/assets/(.*)', NonCachingStaticFileHandler, {'path': os.path.join(self.here, 'assets/')}],
             [r'/files(/check)?', Files],
