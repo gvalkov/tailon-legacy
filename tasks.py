@@ -1,16 +1,15 @@
 # -*- coding: utf-8; -*-
 
-import re
 import json
 import subprocess as sub
-
 from glob import glob
-from time import time
 from pathlib import Path
+from time import time
 
+import re
 from invoke import run, task
-from webassets.loaders import YAMLLoader
 from webassets.filter import register_filter, Filter
+from webassets.loaders import YAMLLoader
 
 
 #-----------------------------------------------------------------------------
@@ -26,6 +25,7 @@ LOGSIM_FILES = [
 BOWERBIN = Path('node_modules/bower/bin/bower')
 BOWERDIR = Path('bower_components')
 ASSETDIR = Path('tailon/assets')
+
 
 #-----------------------------------------------------------------------------
 # Invoke tasks.
@@ -57,14 +57,17 @@ def logsim_start(
     '''.format(**vars())
     run(cmd)
 
+
 @task
 def logsim_stop(ctx):
     run('python tests/logsim.py --daemon stop')
+
 
 @task
 def logsim(ctx):
     files = ' '.join(str(i) for i in LOGSIM_FILES)
     sub.check_call('python -m tailon.main  -d -a -f {}'.format(files), shell=True)
+
 
 @task
 def test(ctx):
@@ -76,11 +79,13 @@ def list_bowerfiles(ctx):
     for source in bowerfiles():
         print(source)
 
+
 @task
 def collectstatic(ctx):
     # Copy bower main files to the vendor dir.
     for source in bowerfiles():
         dest = Path(ASSETDIR/'vendor', *source.parts[1:])
+
         run('install -vD {} {}'.format(source, dest))
 
 @task
@@ -93,6 +98,7 @@ def cleanstatic(ctx):
         print('unkink: %s' % path)
         path.unlink()
 
+
 @task
 def compile_typescript(ctx, debug=False):
     dst = ASSETDIR / 'gen/Main.js'
@@ -101,6 +107,7 @@ def compile_typescript(ctx, debug=False):
 
     print('* Compiling typescript to %s' % dst)
     run(cmd % (dst, src))
+
 
 @task(pre=[compile_typescript])
 def webassets(ctx, debug=False, expire=True, replace=False):
@@ -165,11 +172,14 @@ def sedplaceholder(filename, placeholder, replacement, indent=6):
     with open(filename, 'w') as fh:
         fh.write(''.join(lines))
 
+
 def url_to_link(url):
     return "  <link rel='stylesheet' href='{{root}}%s'>\n" % url
 
+
 def url_to_script(url):
     return "  <script src='{{root}}%s'></script>\n" % url
+
 
 def bowerfiles():
     res = run('%s list --paths --json' % BOWERBIN, hide='out')
@@ -180,6 +190,7 @@ def bowerfiles():
     main = (glob(j) for i in main for j in i)
     main = [Path(j) for i in main for j in i]
     return main
+
 
 def vendorfiles():
     for source in bowerfiles():
