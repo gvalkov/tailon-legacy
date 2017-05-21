@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 from setuptools import setup
 
 
@@ -12,7 +10,7 @@ classifiers = [
 ]
 
 requirements = [
-    'tornado>=4.4.1',
+    'tornado>=4.5.1',
     'sockjs-tornado>=1.0.3',
     'PyYAML>=3.11',
 ]
