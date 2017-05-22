@@ -23,9 +23,9 @@ images_config = {
 master_doc = 'index'
 
 project = u'tailon'
-copyright = u'2013-2016, Georgi Valkov'
+copyright = u'2013-2017, Georgi Valkov'
 
-release = '1.1.1'
+release = '1.2.0'
 version = release
 
 exclude_patterns = ['_build']
