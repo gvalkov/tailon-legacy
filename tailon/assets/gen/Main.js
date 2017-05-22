@@ -41,7 +41,7 @@ var LogView = (function () {
         }
         this.container.appendChild(fragment);
         this.trimHistory();
-        fragment.innerHTML = '';
+        //fragment.innerHTML = '';
         if (this.autoScroll && scrollAfterWrite) {
             this.scroll();
         }
@@ -54,7 +54,6 @@ var LogView = (function () {
     };
     LogView.prototype.createSpans = function (message) {
         var spans = [];
-        // Just a list of lines that we write to the logview.
         if (Array.isArray(message)) {
             for (var i = 0; i < message.length; i++) {
                 var line = Utils.escapeHtml(message[i]);
@@ -67,15 +66,6 @@ var LogView = (function () {
                 var line_1 = message['err'][i];
                 spans.push(this.createLogNoticeSpan(line_1));
             }
-        }
-        else {
-            $.each(message, function (fn, payload) {
-                for (var i = 0; i < payload.length; i++) {
-                    var line = Utils.escapeHtml(payload[i]);
-                    line = line.replace(/\n$/, '');
-                    spans.push(this.createLogEntrySpan(line));
-                }
-            });
         }
         this.writeSpans(spans);
     };
