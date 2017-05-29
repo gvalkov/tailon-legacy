@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+1.2.1 (May 29, 2017)
+====================
+
+- Depend on tornado >= 4.0.0 instead of on >= 4.5.1 (the latest and greatest
+  at the moment).
+
+
 1.2.0 (May 23, 2017)
 ====================
 
