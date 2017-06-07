@@ -263,10 +263,10 @@ def main(argv=sys.argv):
         print('\n%s' % msg, file=sys.stderr)
         sys.exit(1)
 
-    if opts.debug:
-        enable_debugging()
-
     config = setup(opts)
+
+    if config['debug']:
+        enable_debugging()
 
     file_utils = utils.FileUtils(use_directory_cache=True)
     file_lister = utils.FileLister(file_utils, config['files'], config['follow-names'])
