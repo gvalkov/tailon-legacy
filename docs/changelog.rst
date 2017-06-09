@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+1.3.0 (Jun 09, 2017)
+====================
+
+- Fix a regression that caused all whitespace to be squashed.
+- Fix an issue with the initial state of line wrapping.
+- Support enabling of debug mode from the configuration file.
+
+
 1.2.1 (May 29, 2017)
 ====================
 
@@ -35,6 +43,7 @@ Changelog
   exist yet. It is equivalent to running ``tail -F`` instead of the ``tail -f``.
 
 - Fix ``tail-lines`` not being read from the configuration file.
+
 
 1.0.0 (Sep 10, 2016)
 ====================
