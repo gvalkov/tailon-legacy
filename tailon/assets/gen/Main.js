@@ -301,7 +301,7 @@ var settings = new Settings.Settings({
     toolbarHeight: 10,
     panelHidden: false,
     // Logview tunables.
-    wrapLines: false,
+    wrapLines: window.clientConfig['wrap-lines-initial'],
     linesOfHistory: 2000,
     linesToTail: window.clientConfig['tail-lines-initial'],
     currentCommand: null,
@@ -318,6 +318,7 @@ var backend = new TailonServer(apiURL, 10);
 var logview = new LogView(backend, settings, document.getElementById('logviewer'), 'log-entry', 'log-entry log-notice');
 //----------------------------------------------------------------------------
 // Show spinner while connecting to the backend.
+//----------------------------------------------------------------------------
 spinner.spin();
 document.body.appendChild(spinner.el);
 backend.onConnect.addCallback(function () {
@@ -334,6 +335,7 @@ backend.onMessage.addCallback(function (message) {
 });
 //-----------------------------------------------------------------------------
 // Configuration
+//----------------------------------------------------------------------------
 $('#action-show-settings a').click(function () {
     $('#configuration').toggle();
 });
@@ -363,6 +365,10 @@ settings.onChange('linesOfHistory', function (lines) {
 settings.onChange('wrapLines', function (value) {
     logview.toggleWrapLines();
 });
+// Set initial state of "Wrap Lines" checkbox.
+$('#wrap-lines').attr('checked', settings.get('wrapLines'));
+// Set initial line-wrapping state of log-view spans.
+logview.toggleWrapLines();
 function onResize() {
     var newSize = $(window).height() - $('#toolbar').outerHeight();
     console.log(newSize);
