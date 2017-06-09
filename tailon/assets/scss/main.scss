@@ -172,7 +172,7 @@ div #command-select {
 .scrollable {
   height: 100%;
   word-break: break-all;
-  white-space: nowrap;
+  white-space: pre;
   overflow: auto;
 }
 
@@ -201,7 +201,7 @@ div #command-select {
 }
 
 .log-view-wrapped {
-  white-space: normal;
+  white-space: pre-wrap;
 }
 
 
