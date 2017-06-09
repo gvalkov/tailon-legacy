@@ -28,7 +28,7 @@ let settings = new Settings.Settings({
     panelHidden: false,
 
     // Logview tunables.
-    wrapLines: false,
+    wrapLines: window.clientConfig['wrap-lines-initial'],
     linesOfHistory: 2000,  // 0 for infinite history.
     linesToTail: window.clientConfig['tail-lines-initial'],  // i.e. tail -n $linesToTail.
 
@@ -58,6 +58,7 @@ const logview = new LogView(
 
 //----------------------------------------------------------------------------
 // Show spinner while connecting to the backend.
+//----------------------------------------------------------------------------
 spinner.spin();
 document.body.appendChild(spinner.el);
 
@@ -80,6 +81,7 @@ backend.onMessage.addCallback(function(message) {
 
 //-----------------------------------------------------------------------------
 // Configuration
+//----------------------------------------------------------------------------
 $('#action-show-settings a').click(function() {
     $('#configuration').toggle();
 });
@@ -114,6 +116,12 @@ settings.onChange('linesOfHistory', function(lines) {
 settings.onChange('wrapLines', function(value) {
     logview.toggleWrapLines();
 });
+
+// Set initial state of "Wrap Lines" checkbox.
+$('#wrap-lines').attr('checked', settings.get('wrapLines'))
+
+// Set initial line-wrapping state of log-view spans.
+logview.toggleWrapLines()
 
 
 function onResize() {
