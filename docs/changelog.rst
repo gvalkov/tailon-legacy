@@ -1,6 +1,12 @@
 Changelog
 ---------
 
+1.3.1 (Mar 17, 2018)
+====================
+
+- Pin tornado version to 4.x until tornado-sockjs begins supporting tornado 5.x.
+
+
 1.3.0 (Jun 09, 2017)
 ====================
 
