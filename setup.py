@@ -10,6 +10,7 @@ classifiers = [
 ]
 
 requirements = [
+    'deepmerger',
     'tornado>=4.0.0,<5.0.0',
     'tornado-http-auth>=1.0.0',
     'sockjs-tornado>=1.0.0',
