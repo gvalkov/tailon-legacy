@@ -47,7 +47,7 @@ class CommandControl:
         return proc
 
     def grep(self, regex, fn, stdout, stderr, **kw):
-        cmd = [self.toolpaths.cmd_grep, '--text', '--line-buffered', '--color=never', '-e', regex]
+        cmd = [self.toolpaths.cmd_grep, '--text', '--line-buffered', '--color=never', '-E', regex]
         if fn:
             cmd.append(fn)
         proc = process.Subprocess(cmd, stdout=stdout, stderr=stderr, **kw)
