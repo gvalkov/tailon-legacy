@@ -5,6 +5,7 @@ relative-root: /tailon  # web app root path (default: '')
 commands: [tail, grep]  # allowed commands
 tail-lines: 10          # number of lines to tail initially
 wrap-lines: true        # initial line-wrapping state
+extra-files-dir: /etc/tailon/files.d/
 
 files:
   - '/var/log/messages'

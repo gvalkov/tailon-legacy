@@ -12,6 +12,7 @@ import textwrap
 import collections
 import pkg_resources
 
+from deepmerge import conservative_merger
 from tornado import ioloop, httpserver
 
 from . import commands
@@ -71,8 +72,17 @@ def parseconfig(cfg):
         'http-auth':       raw_config.get('http-auth', False),
         'users':           raw_config.get('users', {}),
         'wrap-lines':      raw_config.get('wrap-lines', True),
-        'tail-lines':      raw_config.get('tail-lines', 10)
+        'tail-lines':      raw_config.get('tail-lines', 10),
+        'extra-files-dir': raw_config.get('extra-files-dir', '/etc/tailon/files.d/'),
     }
+
+    extra_files = []
+    for file in os.listdir(config['extra-files-dir']):
+        if file.endswith('.yaml') or file.endswith('.yml'):
+            full_path = os.path.join(config['extra-files-dir'], file)
+            with open(full_path, 'r') as f:
+                _config = yaml.load(f.read())
+            extra_files.extend(_config.get('files'))
 
     if 'files' not in raw_config or not len(raw_config['files']):
         raise Exception('missing or empty "files" config entry')
@@ -95,6 +105,7 @@ def parseconfig(cfg):
                 d = files.setdefault(group, [])
                 d.append(path)
 
+    raw_config['files'] = conservative_merger.merge(raw_config['files'], extra_files)
     helper(raw_config['files'])
     return config
 
@@ -151,6 +162,9 @@ def parseopts(args=None):
 
     arg('-f', '--files', nargs='+', metavar='path',
         help='list of files or file wildcards to expose')
+
+    arg('--extra-files-dir', type=str,
+        metavar='extra_files_dir', help='extra yaml config file defining files')
 
     #-------------------------------------------------------------------------
     group = parser.add_argument_group('General options')
@@ -212,6 +226,7 @@ def setup(opts):
         'debug': opts.__dict__.get('debug', False),
         'tail-lines': opts.__dict__.get('tail_lines', 10),
         'wrap-lines': opts.__dict__.get('wrap-lines', True),
+        'extra-files-dir': opts.__dict__.get('extra-files-dir', '/etc/tailon/files.d/'),
     }
 
     if config['follow-names']:
