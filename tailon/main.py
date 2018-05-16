@@ -77,12 +77,13 @@ def parseconfig(cfg):
     }
 
     extra_files = []
-    for file in os.listdir(config['extra-files-dir']):
-        if file.endswith('.yaml') or file.endswith('.yml'):
-            full_path = os.path.join(config['extra-files-dir'], file)
-            with open(full_path, 'r') as f:
-                _config = yaml.load(f.read())
-            extra_files.extend(_config.get('files'))
+    if os.path.isdir(config['extra-files-dir']):
+        for file in os.listdir(config['extra-files-dir']):
+            if file.endswith('.yaml') or file.endswith('.yml'):
+                full_path = os.path.join(config['extra-files-dir'], file)
+                with open(full_path, 'r') as f:
+                    _config = yaml.load(f.read())
+                extra_files.extend(_config.get('files'))
 
     if 'files' not in raw_config or not len(raw_config['files']):
         raise Exception('missing or empty "files" config entry')
