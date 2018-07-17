@@ -19,13 +19,13 @@ requirements = [
 
 kw = {
     'name':             'tailon',
-    'version':          '1.4.2',
+    'version':          '1.4.3',
     'description':      'Webapp for looking at and searching through log files',
     'long_description': open('README.rst').read(),
     'author':           'Georgi Valkov',
     'author_email':     'georgi.t.valkov@gmail.com',
     'license':          'Revised BSD License',
-    'url':              'https://github.com/gvalkov/tailon',
+    'url':              'https://github.com/gvalkov/tailon-legacy',
     'keywords':         'log monitoring tail',
     'packages':         ['tailon'],
     'classifiers':      classifiers,
