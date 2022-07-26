@@ -58,7 +58,7 @@ def enable_debugging():
 def parseconfig(cfg):
     import yaml
 
-    raw_config = yaml.load(cfg)
+    raw_config = yaml.safe_load(cfg)
 
     port, addr = utils.parseaddr(raw_config.get('bind', 'localhost:8080'))
     config = {
